@@ -1,0 +1,112 @@
+/* General container styles */
+.time-entry-container {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Header styles */
+  .heading {
+    text-align: center;
+    color: #2e8b57; /* Green shade */
+    margin-bottom: 20px;
+  }
+  
+  /* Table styles */
+  .time-entry-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .time-entry-table th, .time-entry-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .time-entry-table th {
+    background-color: #4CAF50; /* Green background for headers */
+    color: white;
+  }
+  
+  .time-entry-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .time-entry-table td button {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .time-entry-table td button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Form container styles */
+  .form-container {
+    margin-top: 20px;
+  }
+  
+  .form-heading {
+    color: #2e8b57;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  
+  .label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .input-field {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  .input-field:focus {
+    border-color: #4CAF50; /* Green focus */
+    outline: none;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .add-button,
+  .save-button,
+  .cancel-button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .add-button:hover,
+  .save-button:hover,
+  .cancel-button:hover {
+    background-color: #45a049;
+  }
+  
+  .cancel-button {
+    background-color: #f44336; /* Red for cancel */
+  }
+  
+  .cancel-button:hover {
+    background-color: #e53935;
+  }
+  
