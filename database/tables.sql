@@ -9,3 +9,11 @@ CREATE TABLE timeentry (
     description TEXT,
     hours DECIMAL(5,2) NOT NULL
 );
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP
+);

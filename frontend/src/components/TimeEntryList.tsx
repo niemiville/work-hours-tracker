@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
-import { fetchTimeEntries, createTimeEntry, updateTimeEntry } from '../api/timeEntryApi';
-import '../styles/TimeEntryList.css'; // Importing the CSS file for styles
+import { useEffect, useState } from "react";
+import { fetchTimeEntries, createTimeEntry, updateTimeEntry } from "../api/timeEntryApi";
+import { getUser } from "../api/authApi"; // Fetch logged-in user
+import { useNavigate } from "react-router-dom";
+import "../styles/TimeEntryList.css";
 
 type TimeEntry = {
   id: number;
@@ -14,80 +16,68 @@ type TimeEntry = {
 
 const TimeEntryList = () => {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
-  const [newEntry, setNewEntry] = useState<TimeEntry>({
-    id: 0,
+  const [newEntry, setNewEntry] = useState<Omit<TimeEntry, "id">>({
     userid: 0,
-    date: '',
-    tasktype: '',
+    date: "",
+    tasktype: "",
     taskid: 0,
-    description: '',
+    description: "",
     hours: 0,
   });
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchTimeEntries().then((data) => {
-      // Sort the entries by date in ascending order (newest at the bottom)
-      const sortedEntries = data.sort((a: TimeEntry, b: TimeEntry) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateA.getTime() - dateB.getTime(); // Ascending order
+    const loadUserAndEntries = async () => {
+      const user = await getUser(); // Get logged-in user
+      if (!user) {
+        navigate("/login"); // Redirect if not logged in
+        return;
+      }
+
+      setUserId(user.id);
+      setToken(user.token); // Assuming the token is part of the user object
+      fetchTimeEntries(user.token).then((data) => {
+        // Sort entries by date (ascending order)
+        const sortedEntries = data.sort((a: TimeEntry, b: TimeEntry) => 
+          new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+        setEntries(sortedEntries);
       });
-      setEntries(sortedEntries);
-    });
-  }, []);
+    };
+
+    loadUserAndEntries();
+  }, [navigate]);
 
   const handleCreate = async () => {
-    if (!newEntry) return;
-    const createdEntry = await createTimeEntry(newEntry);
-    setEntries((prevEntries) => [...prevEntries, createdEntry]);
-    setNewEntry({
-      id: 0,
-      userid: 0,
-      date: '',
-      tasktype: '',
-      taskid: 0,
-      description: '',
-      hours: 0,
-    }); // Reset new entry form
+    if (!newEntry || !userId || !token) return;
+    const createdEntry = await createTimeEntry({ ...newEntry }, token);
+    setEntries((prev) => [...prev, createdEntry]);
+    setNewEntry({ userid: userId, date: "", tasktype: "", taskid: 0, description: "", hours: 0 });
   };
 
   const handleUpdate = async () => {
-    if (!editingEntry) return;
-    const updatedEntry = await updateTimeEntry(editingEntry.id, editingEntry);
-    setEntries((prevEntries) =>
-      prevEntries.map((entry) =>
-        entry.id === updatedEntry.id ? updatedEntry : entry
-      )
-    );
-    setEditingEntry(null); // Reset edit form
+    if (!editingEntry || !token) return;
+    const updatedEntry = await updateTimeEntry(editingEntry.id, editingEntry, token);
+    setEntries((prev) => prev.map((entry) => (entry.id === updatedEntry.id ? updatedEntry : entry)));
+    setEditingEntry(null);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    if (newEntry) {
-      setNewEntry({ ...newEntry, [name]: value });
-    }
-    if (editingEntry) {
-      setEditingEntry({ ...editingEntry, [name]: value });
-    }
+    if (editingEntry) setEditingEntry({ ...editingEntry, [name]: value });
+    else setNewEntry((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEdit = (entry: TimeEntry) => {
-    setEditingEntry({ ...entry });
-  };
-
-  const handleCancelEdit = () => {
-    setEditingEntry(null);
-  };
-
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
-  };
+  const handleEdit = (entry: TimeEntry) => setEditingEntry(entry);
+  const handleCancelEdit = () => setEditingEntry(null);
+  const formatDate = (date: string) => new Date(date).toLocaleDateString("fi-FI");
 
   return (
     <div className="time-entry-container">
+      <h2>My Time Entries</h2>
       <table className="time-entry-table">
         <thead>
           <tr>
@@ -117,48 +107,22 @@ const TimeEntryList = () => {
         </tbody>
       </table>
 
-      <h3 className="form-heading">{editingEntry ? 'Edit Entry' : 'Add New Entry'}</h3>
+      <h3>{editingEntry ? "Edit Entry" : "Add New Entry"}</h3>
       <div className="form-container">
         <label>Date:</label>
-        <input
-          className="input-field"
-          type="date"
-          name="date"
-          value={editingEntry ? editingEntry.date : newEntry?.date || ''}
-          onChange={handleInputChange}
-        />
+        <input type="date" name="date" value={editingEntry?.date || newEntry.date} onChange={handleInputChange} />
+
         <label>Task Type:</label>
-        <input
-          className="input-field"
-          type="text"
-          name="tasktype"
-          value={editingEntry ? editingEntry.tasktype : newEntry?.tasktype || ''}
-          onChange={handleInputChange}
-        />
+        <input type="text" name="tasktype" value={editingEntry?.tasktype || newEntry.tasktype} onChange={handleInputChange} />
+
         <label>Task ID:</label>
-        <input
-          className="input-field"
-          type="number"
-          name="taskid"
-          value={editingEntry ? editingEntry.taskid : newEntry?.taskid || ''}
-          onChange={handleInputChange}
-        />
+        <input type="number" name="taskid" value={editingEntry?.taskid || newEntry.taskid} onChange={handleInputChange} />
+
         <label>Description:</label>
-        <textarea
-          className="input-field"
-          name="description"
-          value={editingEntry ? editingEntry.description : newEntry?.description || ''}
-          onChange={handleInputChange}
-        />
+        <textarea name="description" value={editingEntry?.description || newEntry.description} onChange={handleInputChange} />
+
         <label>Hours:</label>
-        <input
-          className="input-field"
-          type="number"
-          name="hours"
-          step="0.1"
-          value={editingEntry ? editingEntry.hours : newEntry?.hours || ''}
-          onChange={handleInputChange}
-        />
+        <input type="number" name="hours" step="0.1" value={editingEntry?.hours || newEntry.hours} onChange={handleInputChange} />
 
         <div className="form-actions">
           {editingEntry ? (
