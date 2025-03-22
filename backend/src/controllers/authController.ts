@@ -5,6 +5,10 @@ import pool from '../config/database';
 
 const SECRET_KEY = 'your_secret_key'; // Change this to a secure key
 
+interface AuthRequest extends Request {
+    user?: { id: number; name: string };
+}
+
 interface User {
     id: number;
     name: string;
@@ -64,9 +68,13 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): a
     }
 };
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        res.json(req); // User is already set in authenticate middleware
+        if (!req.user) {
+            res.status(401).json({ error: "Unauthorized" });
+            return;
+        }
+        res.json(req.user);
     } catch (err) {
         res.status(500).json({ error: "Failed to retrieve user" });
     }

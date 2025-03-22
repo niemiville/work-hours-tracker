@@ -5,7 +5,7 @@ CREATE TABLE timeentry (
     updated TIMESTAMP,
     date DATE NOT NULL,
     tasktype VARCHAR(50) NOT NULL,
-    taskid INT NOT NULL,
+    taskid INT,
     description TEXT,
     hours DECIMAL(5,2) NOT NULL
 );
@@ -17,3 +17,5 @@ CREATE TABLE users (
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated TIMESTAMP
 );
+
+ALTER TABLE timeentry ALTER COLUMN taskid DROP NOT NULL;

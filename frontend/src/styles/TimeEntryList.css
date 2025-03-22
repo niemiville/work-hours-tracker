@@ -52,61 +52,165 @@
   /* Form container styles */
   .form-container {
     margin-top: 20px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 100%;
   }
   
-  .form-heading {
-    color: #2e8b57;
-    text-align: center;
-    margin-bottom: 10px;
+  .form-container .input-row {
+    display: flex;
+    gap: 25px;
+    align-items: flex-start;
+    flex-wrap: nowrap;
   }
   
-  .label {
+  .form-container .input-row > div {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .form-container label {
     display: block;
     margin-bottom: 5px;
-    font-weight: bold;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
   }
   
-  .input-field {
+  .form-container input,
+  .form-container textarea {
     width: 100%;
     padding: 8px;
-    margin-bottom: 15px;
     border-radius: 4px;
     border: 1px solid #ccc;
+    font-size: 1rem;
   }
   
-  .input-field:focus {
-    border-color: #4CAF50; /* Green focus */
+  .form-container input:focus,
+  .form-container textarea:focus {
+    border-color: #4CAF50;
     outline: none;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
   }
   
+  .form-container textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  /* Make description field span full width */
+  .form-container > div:nth-child(4) {
+    grid-column: 1 / -1;
+  }
+  
+  /* Make form actions span full width */
   .form-actions {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 10px;
+    margin-top: 5px;
   }
   
   .add-button,
   .save-button,
   .cancel-button {
     padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  
+  .add-button,
+  .save-button {
+    background-color: #4CAF50;
+    color: white;
   }
   
   .add-button:hover,
-  .save-button:hover,
-  .cancel-button:hover {
+  .save-button:hover {
     background-color: #45a049;
   }
   
   .cancel-button {
-    background-color: #f44336; /* Red for cancel */
+    background-color: #f44336;
+    color: white;
   }
   
   .cancel-button:hover {
     background-color: #e53935;
+  }
+  
+  .edit-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .edit-button:hover {
+    background-color: #45a049;
+  }
+  
+  .add-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  .add-button:disabled:hover {
+    background-color: #cccccc;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .action-buttons .duplicate-button {
+    background-color: #2196F3 !important;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .action-buttons .duplicate-button:hover {
+    background-color: #1976D2 !important;
+  }
+  
+  .action-buttons .delete-button {
+    background-color: #f44336 !important;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .action-buttons .delete-button:hover {
+    background-color: #e53935 !important;
+  }
+  
+  .duplicate-yesterday-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    background-color: #2196F3;
+    color: white;
+    margin-right: 10px;
+  }
+  
+  .duplicate-yesterday-button:hover {
+    background-color: #1976D2;
   }
   

@@ -33,7 +33,7 @@ export const createTimeEntry = async (req: AuthRequest, res: Response): Promise<
 
     const { id: userId } = req.user;
     const { date, tasktype, taskid, description, hours } = req.body;
-
+    
     const result = await pool.query(
       "INSERT INTO timeentry (userid, date, tasktype, taskid, description, hours) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
       [userId, date, tasktype, taskid, description, hours]
@@ -66,6 +66,32 @@ export const updateTimeEntry = async (req: AuthRequest, res: Response): Promise<
       res.status(404).json({ error: "Entry not found or unauthorized" });
     } else {
       res.json(result.rows[0]);
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
+  }
+};
+
+// ✅ Delete a time entry (Only if user owns it)
+export const deleteTimeEntry = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const { id } = req.params;
+    const { id: userId } = req.user;
+
+    const result = await pool.query(
+      "DELETE FROM timeentry WHERE id=$1 AND userid=$2 RETURNING *",
+      [id, userId]
+    );
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "Entry not found or unauthorized" });
+    } else {
+      res.json({ message: "Entry deleted successfully" });
     }
   } catch (err) {
     res.status(500).json({ error: "Database error" });
