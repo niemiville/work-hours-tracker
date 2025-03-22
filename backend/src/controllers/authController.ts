@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../config/database';
 
-const SECRET_KEY = 'your_secret_key'; // Change this to a secure key
+const SECRET_KEY = process.env.JWT_SECRET || 'fallback_for_development_only';
 
 interface AuthRequest extends Request {
     user?: { id: number; name: string };
