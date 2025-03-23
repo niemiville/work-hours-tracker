@@ -6,7 +6,7 @@ interface AuthRequest extends Request {
   user?: { id: number };
 }
 
-// ✅ Get time entries for logged-in user
+// ✅ Get time entries for logged-in user with pagination
 export const getTimeEntries = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.user) {
@@ -15,10 +15,45 @@ export const getTimeEntries = async (req: AuthRequest, res: Response): Promise<v
     }
 
     const { id: userId } = req.user;
-    const result = await pool.query("SELECT * FROM timeentry WHERE userid = $1 ORDER BY date DESC", [userId]);
-
-    res.json(result.rows);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 5;
+    
+    // First, get the distinct dates with entries, ordered by date descending
+    const datesResult = await pool.query(
+      "SELECT DISTINCT date FROM timeentry WHERE userid = $1 ORDER BY date DESC LIMIT $2 OFFSET $3",
+      [userId, limit, (page - 1) * limit]
+    );
+    
+    if (datesResult.rows.length === 0) {
+      res.json({ entries: [], totalDates: 0, page, limit });
+      return;
+    }
+    
+    // Extract the dates
+    const dates = datesResult.rows.map(row => row.date);
+    
+    // Get entries for these dates
+    const entriesResult = await pool.query(
+      "SELECT * FROM timeentry WHERE userid = $1 AND date = ANY($2) ORDER BY date DESC, id DESC",
+      [userId, dates]
+    );
+    
+    // Get total count of distinct dates for pagination
+    const totalResult = await pool.query(
+      "SELECT COUNT(DISTINCT date) as total FROM timeentry WHERE userid = $1",
+      [userId]
+    );
+    
+    const totalDates = parseInt(totalResult.rows[0].total);
+    
+    res.json({
+      entries: entriesResult.rows,
+      totalDates,
+      page,
+      limit
+    });
   } catch (err) {
+    console.error("Error fetching time entries:", err);
     res.status(500).json({ error: "Database error" });
   }
 };

@@ -29,10 +29,18 @@ export interface UpdateTimeEntryRequest {
   hours: number;
 }
 
-// ✅ Fetch time entries for the logged-in user
-export const fetchTimeEntries = async (token: string) => {
+export interface TimeEntriesResponse {
+  entries: TimeEntry[];
+  totalDates: number;
+  page: number;
+  limit: number;
+}
+
+// ✅ Fetch time entries for the logged-in user with pagination
+export const fetchTimeEntries = async (token: string, page: number = 1, limit: number = 5): Promise<TimeEntriesResponse> => {
   const response = await axios.get(API_URL, {
     headers: { Authorization: `Bearer ${token}` },
+    params: { page, limit }
   });
   return response.data;
 };
