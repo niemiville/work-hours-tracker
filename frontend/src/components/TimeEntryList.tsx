@@ -20,13 +20,13 @@ const TimeEntryList = () => {
     hours: 0,
   });
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
     if (!user) {
-      navigate("/login");
+      navigate("/signin");
       return;
     }
 
@@ -296,8 +296,22 @@ const TimeEntryList = () => {
     }
   };
 
+  const handleSignOut = () => {
+    logout();
+    navigate("/signin");
+  };
+
   return (
     <div className="time-entry-container">
+      <div className="header-container">
+        <a href="#" className="sign-out-link" onClick={(e) => {
+          e.preventDefault();
+          handleSignOut();
+        }}>
+          Sign out
+        </a>
+      </div>
+      
       <div className="form-container">
         <div className="input-row">
           <div>

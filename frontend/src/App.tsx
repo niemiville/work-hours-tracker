@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
-import Login from './components/Login';
+import SignIn from './components/SignIn';
 import TimeEntryList from './components/TimeEntryList';
 import SignUp from './components/SignUp';
 
@@ -9,10 +9,10 @@ function App() {
         <AuthProvider>
             <Router>
                 <Routes>
-                    <Route path="/" element={<Login />} />
-                    <Route path="/login" element={<Login />} />
+                    <Route path="/" element={<SignIn />} />
+                    <Route path="/signin" element={<SignIn />} />
                     <Route path="/signup" element={<SignUp />} />
-                    <Route path="/time-entries" element={<TimeEntryList />} />
+                    <Route path="/workhours" element={<TimeEntryList />} />
                 </Routes>
             </Router>
         </AuthProvider>

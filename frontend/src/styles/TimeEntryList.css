@@ -7,6 +7,23 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   }
   
+  /* Header container styles */
+  .header-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+  
+  .sign-out-link {
+    color: #2196F3;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  
+  .sign-out-link:hover {
+    text-decoration: underline;
+  }
+  
   /* Header styles */
   .heading {
     text-align: center;
