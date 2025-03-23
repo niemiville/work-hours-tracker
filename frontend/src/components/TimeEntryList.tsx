@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { TimeEntry, CreateTimeEntryRequest, UpdateTimeEntryRequest, fetchTimeEntries, createTimeEntry, updateTimeEntry, deleteTimeEntry } from "../api/timeEntryApi";
 import "../styles/TimeEntryList.css";
 
 type TimeEntryForm = Omit<TimeEntry, "id">;
+
+// Daily hours target constant
+const DAILY_HOURS_TARGET = 7.5;
 
 const TimeEntryList = () => {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
@@ -19,6 +22,7 @@ const TimeEntryList = () => {
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const tableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
     if (!user) {
@@ -29,8 +33,15 @@ const TimeEntryList = () => {
     const loadEntries = async () => {
       try {
         const data = await fetchTimeEntries(user.token);
+        
+        // Process entries to ensure hours is always a number
+        const processedData = data.map((entry: any) => ({
+          ...entry,
+          hours: typeof entry.hours === 'number' ? entry.hours : Number(entry.hours) || 0
+        }));
+        
         // Sort entries by date (descending order)
-        const sortedEntries = data.sort((a: TimeEntry, b: TimeEntry) => 
+        const sortedEntries = processedData.sort((a: TimeEntry, b: TimeEntry) => 
           new Date(b.date).getTime() - new Date(a.date).getTime()
         );
         setEntries(sortedEntries);
@@ -42,8 +53,40 @@ const TimeEntryList = () => {
     loadEntries();
   }, [navigate, user]);
 
+  // Debug effect to check styles on date separators
+  useEffect(() => {
+    if (tableRef.current) {
+      const separators = tableRef.current.querySelectorAll('tr.date-separator');
+      console.log(`Found ${separators.length} date separators`);
+      
+      separators.forEach((separator, index) => {
+        const computedStyle = window.getComputedStyle(separator);
+        console.log(`Separator ${index} background color:`, computedStyle.backgroundColor);
+      });
+    }
+  }, [entries]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    // Special handling for hours to ensure it's always a number
+    if (name === 'hours') {
+      const numValue = value === '' ? 0 : Number(value);
+      
+      if (editingEntry) {
+        setEditingEntry({ 
+          ...editingEntry, 
+          hours: numValue
+        });
+      } else {
+        setNewEntry((prev) => ({ 
+          ...prev, 
+          hours: numValue
+        }));
+      }
+      return;
+    }
+    
     if (editingEntry) {
       setEditingEntry({ 
         ...editingEntry, 
@@ -84,8 +127,16 @@ const TimeEntryList = () => {
         tasktype: newEntry.tasktype,
         taskid: newEntry.taskid,
         description: newEntry.description,
-        hours: newEntry.hours
+        // Ensure hours is a number
+        hours: typeof newEntry.hours === 'number' ? newEntry.hours : parseFloat(String(newEntry.hours))
       };
+      
+      // Final check that hours is a valid number
+      if (isNaN(entryToCreate.hours)) {
+        alert("Invalid hours value. Please enter a valid number.");
+        return;
+      }
+      
       const createdEntry = await createTimeEntry(entryToCreate, user.token);
       setEntries((prev) => [createdEntry, ...prev]);
       setNewEntry({ 
@@ -115,8 +166,16 @@ const TimeEntryList = () => {
         tasktype: editingEntry.tasktype,
         taskid: editingEntry.taskid,
         description: editingEntry.description,
-        hours: editingEntry.hours
+        // Ensure hours is a number
+        hours: typeof editingEntry.hours === 'number' ? editingEntry.hours : parseFloat(String(editingEntry.hours))
       };
+      
+      // Final check that hours is a valid number
+      if (isNaN(entryToUpdate.hours)) {
+        alert("Invalid hours value. Please enter a valid number.");
+        return;
+      }
+      
       const updatedEntry = await updateTimeEntry(editingEntry.id, entryToUpdate, user.token);
       setEntries((prev) =>
         prev.map((entry) => (entry.id === updatedEntry.id ? updatedEntry : entry))
@@ -297,7 +356,7 @@ const TimeEntryList = () => {
         </div>
       </div>
 
-      <table className="time-entry-table">
+      <table className="time-entry-table" ref={tableRef}>
         <thead>
           <tr>
             <th>Date</th>
@@ -309,26 +368,103 @@ const TimeEntryList = () => {
           </tr>
         </thead>
         <tbody>
-          {entries.map((entry) => (
-            <tr key={entry.id}>
-              <td>{formatDate(entry.date)}</td>
-              <td>{entry.tasktype}</td>
-              <td>{entry.taskid || ''}</td>
-              <td>{entry.description}</td>
-              <td>{entry.hours}</td>
-              <td className="action-buttons">
-                <button className="edit-button" onClick={() => handleEdit(entry)}>
-                  Edit
-                </button>
-                <button className="duplicate-button" onClick={() => handleDuplicate(entry)}>
-                  Duplicate
-                </button>
-                <button className="delete-button" onClick={() => handleDelete(entry.id)}>
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
+          {(() => {
+            const tableRows: React.ReactElement[] = [];
+            
+            // First pass: Group entries by date for calculations
+            const entriesByDate: { [key: string]: TimeEntry[] } = {};
+            for (const entry of entries) {
+              if (!entriesByDate[entry.date]) {
+                entriesByDate[entry.date] = [];
+              }
+              // Ensure hours is a number
+              const entryWithNumberHours = {
+                ...entry,
+                hours: typeof entry.hours === 'number' ? entry.hours : Number(entry.hours)
+              };
+              entriesByDate[entry.date].push(entryWithNumberHours);
+            }
+
+            console.log('Entries grouped by date:', entriesByDate);
+            
+            // Second pass: Process each date group
+            const dates = Object.keys(entriesByDate).sort((a, b) => 
+              new Date(b).getTime() - new Date(a).getTime()
+            );
+            
+            for (const date of dates) {
+              const entriesForDate = entriesByDate[date];
+              
+              console.log(`Processing date: ${date} with ${entriesForDate.length} entries`);
+              
+              // Calculate total hours for this date
+              let totalHours = 0;
+              for (const timeEntry of entriesForDate) {
+                const hours = typeof timeEntry.hours === 'number' ? timeEntry.hours : Number(timeEntry.hours);
+                if (!isNaN(hours)) {
+                  totalHours += hours;
+                  console.log(`  Entry ${timeEntry.id}: ${hours}h, running total: ${totalHours}h`);
+                }
+              }
+              
+              const remainingHours = Math.max(0, DAILY_HOURS_TARGET - totalHours);
+              
+              // Format hours with proper decimal places
+              const totalHoursFormatted = totalHours.toFixed(2);
+              const remainingHoursFormatted = remainingHours.toFixed(2);
+              const exceededHoursFormatted = (totalHours - DAILY_HOURS_TARGET).toFixed(2);
+              
+              // Check if the target is exactly matched (within a small epsilon to handle floating point errors)
+              const isTargetMatched = Math.abs(totalHours - DAILY_HOURS_TARGET) < 0.001;
+              
+              // Add a date header for each date group
+              tableRows.push(
+                <tr 
+                  key={`date-separator-${date}`} 
+                  className="date-separator" 
+                  data-row-type="date-separator"
+                >
+                  <td colSpan={2}>{formatDate(date)}</td>
+                  <td colSpan={4} className="hours-summary">
+                    Total: {totalHoursFormatted} hours | 
+                    {remainingHours > 0 
+                      ? ` Need ${remainingHoursFormatted} more to reach ${DAILY_HOURS_TARGET} hours`
+                      : isTargetMatched
+                        ? <span className="target-matched"> Target matched!</span>
+                        : ` Exceeded target by ${exceededHoursFormatted} hours`
+                    }
+                  </td>
+                </tr>
+              );
+              
+              // Add all entries for this date
+              for (const entry of entriesForDate) {
+                // Explicitly set the row class to ensure consistency
+                tableRows.push(
+                  <tr key={entry.id} className="date-group-even">
+                    <td>{formatDate(entry.date)}</td>
+                    <td>{entry.tasktype}</td>
+                    <td>{entry.taskid || ''}</td>
+                    <td>{entry.description}</td>
+                    <td>{entry.hours}</td>
+                    <td className="action-buttons">
+                      <button className="edit-button" onClick={() => handleEdit(entry)}>
+                        Edit
+                      </button>
+                      <button className="duplicate-button" onClick={() => handleDuplicate(entry)}>
+                        Duplicate
+                      </button>
+                      <button className="delete-button" onClick={() => handleDelete(entry.id)}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              }
+            }
+            
+            return tableRows;
+          })()}
         </tbody>
       </table>
     </div>

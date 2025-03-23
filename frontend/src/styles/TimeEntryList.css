@@ -32,8 +32,49 @@
     color: white;
   }
   
+  /* Date separator styling - multiple approaches to ensure consistent styling */
+  table.time-entry-table > tbody > tr.date-separator,
+  tr[class*="date-separator"],
+  tr[data-row-type="date-separator"] {
+    background-color: #2e7d32 !important; /* Dark green background - matches the app theme */
+    color: white !important;
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+  
+  /* Reset even/odd styling for date separators */
+  .time-entry-table tr:nth-child(even).date-separator {
+    background-color: #2e7d32 !important; /* Same dark green */
+  }
+  
+  .time-entry-table tr.date-separator td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #1b5e20; /* Darker green for border */
+  }
+  
+  .time-entry-table tr.date-separator td:first-child {
+    text-align: left;
+  }
+  
+  .time-entry-table tr.date-separator .hours-summary {
+    text-align: right;
+    font-size: 0.95em;
+  }
+  
+  /* Style for target match message */
+  .time-entry-table tr.date-separator .hours-summary span.target-matched {
+    color: white;
+    font-weight: bold;
+  }
+  
+  /* Date group highlighting styles - Now using only one style */
+  .time-entry-table tr.date-group-even {
+    background-color: #e8f5e9; /* Light green for all rows */
+  }
+  
+  /* Original alternating row style - now overridden by date grouping */
   .time-entry-table tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: inherit; /* Inherit from date group styling */
   }
   
   .time-entry-table td button {
