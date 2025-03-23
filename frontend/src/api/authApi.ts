@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_ENDPOINTS } from "./config";
 
-const API_URL = 'http://localhost:3001/api/auth';
+const API_URL = API_ENDPOINTS.AUTH;
 
 // Add axios interceptor to handle auth headers
 axios.interceptors.request.use(

@@ -1,6 +1,7 @@
 import axios from "axios";
+import { API_ENDPOINTS } from "./config";
 
-const API_URL = "http://localhost:3001/api/time-entries";
+const API_URL = API_ENDPOINTS.TIME_ENTRIES;
 
 export interface TimeEntry {
   id: number;

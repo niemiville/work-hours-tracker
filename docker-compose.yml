@@ -1,0 +1,59 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:latest
+    container_name: work-hours-db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: workhours
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/tables.sql:/docker-entrypoint-initdb.d/01-tables.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d workhours"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Node.js Application
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: work-hours-backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DB_HOST: db
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: workhours
+      DB_PORT: 5432
+      PORT: 3001
+    ports:
+      - "3001:3001"
+
+  # Frontend React Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: work-hours-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+
+volumes:
+  pgdata:
+    driver: local 
