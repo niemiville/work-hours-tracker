@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { TimeEntry, CreateTimeEntryRequest, UpdateTimeEntryRequest, TimeEntriesResponse, fetchTimeEntries, createTimeEntry, updateTimeEntry, deleteTimeEntry } from "../api/timeEntryApi";
@@ -24,16 +24,19 @@ const TimeEntryList = () => {
   const [totalDates, setTotalDates] = useState<number>(0);
   const [hasMoreDates, setHasMoreDates] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadedEntryIds, setLoadedEntryIds] = useState<Set<number>>(new Set());
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const tableRef = useRef<HTMLTableElement>(null);
-  const loaderRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef<boolean>(false);
 
   const loadEntries = async (page: number = 1, append: boolean = false) => {
-    if (!user || isLoading) return;
+    if (!user || isLoading || loadingRef.current) return;
     
+    // Set a ref to prevent concurrent loading requests
+    loadingRef.current = true;
     setIsLoading(true);
+    
     try {
       const data = await fetchTimeEntries(user.token, page);
       
@@ -43,48 +46,60 @@ const TimeEntryList = () => {
         hours: typeof entry.hours === 'number' ? entry.hours : Number(entry.hours) || 0
       }));
       
+      // If no entries were returned, we've reached the end
+      if (processedData.length === 0) {
+        setHasMoreDates(false);
+        loadingRef.current = false;
+        setIsLoading(false);
+        return;
+      }
+      
       if (append) {
-        setEntries(prev => [...prev, ...processedData]);
+        // Filter out entries we already have by ID (most reliable way)
+        const newEntries = processedData.filter(entry => !loadedEntryIds.has(entry.id));
+        
+        // If we didn't get any new entries, we've reached the end
+        if (newEntries.length === 0) {
+          setHasMoreDates(false);
+          loadingRef.current = false;
+          setIsLoading(false);
+          return;
+        }
+        
+        // Add new entries to our list
+        setEntries(prev => [...prev, ...newEntries]);
+        
+        // Update the set of loaded entry IDs
+        const updatedEntryIds = new Set(loadedEntryIds);
+        newEntries.forEach(entry => updatedEntryIds.add(entry.id));
+        setLoadedEntryIds(updatedEntryIds);
       } else {
+        // For a fresh load, reset everything
         setEntries(processedData);
+        
+        // Reset loaded entry IDs tracking
+        const newEntryIds = new Set(processedData.map(entry => entry.id));
+        setLoadedEntryIds(newEntryIds);
       }
       
       setCurrentPage(data.page);
       setTotalDates(data.totalDates);
+      
+      // Check if we've loaded all dates based on backend info
       setHasMoreDates(data.page * data.limit < data.totalDates);
     } catch (error) {
       console.error("Failed to fetch time entries:", error);
     } finally {
       setIsLoading(false);
+      loadingRef.current = false;
     }
   };
 
-  // Intersection Observer for infinite scrolling
-  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
-    const [entry] = entries;
-    if (entry.isIntersecting && hasMoreDates && !isLoading) {
+  const handleLoadMore = () => {
+    if (!isLoading && hasMoreDates) {
       loadEntries(currentPage + 1, true);
     }
-  }, [hasMoreDates, isLoading, currentPage]);
-
-  // Setup intersection observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(handleObserver, {
-      root: null,
-      rootMargin: "20px",
-      threshold: 0.1
-    });
-    
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
-    
-    return () => {
-      if (loaderRef.current) {
-        observer.unobserve(loaderRef.current);
-      }
-    };
-  }, [handleObserver]);
+  };
 
   useEffect(() => {
     if (!user) {
@@ -181,7 +196,8 @@ const TimeEntryList = () => {
       
       const createdEntry = await createTimeEntry(entryToCreate, user.token);
       
-      // Refresh to see the new entry - reload from first page
+      // Completely reset and reload entries from first page
+      setLoadedEntryIds(new Set());
       loadEntries(1, false);
       
       setNewEntry({ 
@@ -217,7 +233,8 @@ const TimeEntryList = () => {
       
       await updateTimeEntry(editingEntry.id, entryToUpdate, user.token);
       
-      // Refresh data from the beginning to ensure we have correct state
+      // Reset loaded entry IDs and reload all entries
+      setLoadedEntryIds(new Set());
       loadEntries(1, false);
       
       setEditingEntry(null);
@@ -271,13 +288,19 @@ const TimeEntryList = () => {
     try {
       await deleteTimeEntry(id, user.token);
       
-      // Remove from local state
+      // Remove the entry ID from our loaded set
+      const updatedIds = new Set(loadedEntryIds);
+      updatedIds.delete(id);
+      setLoadedEntryIds(updatedIds);
+      
+      // Remove the entry from local state
       setEntries((prevEntries) => prevEntries.filter((entry) => entry.id !== id));
       
-      // If removing an entry changes the visible dates structure,
-      // refresh the data completely
+      // If this empties a date group completely, we should reload
+      // to ensure our view is complete and consistent
       const remainingDates = new Set(entries.filter(entry => entry.id !== id).map(entry => entry.date));
       if (remainingDates.size < new Set(entries.map(entry => entry.date)).size) {
+        setLoadedEntryIds(new Set());
         loadEntries(1, false);
       }
     } catch (error) {
@@ -300,7 +323,8 @@ const TimeEntryList = () => {
       
       await createTimeEntry(duplicateEntry, user.token);
       
-      // Refresh to ensure we see the new entry
+      // Reset and reload everything to ensure consistent state
+      setLoadedEntryIds(new Set());
       loadEntries(1, false);
     } catch (error) {
       console.error("Failed to duplicate time entry:", error);
@@ -319,7 +343,7 @@ const TimeEntryList = () => {
   };
 
   return (
-    <div className="time-entry-container" ref={containerRef}>
+    <div className="time-entry-container">
       <div className="header-container">
         <a href="#" className="sign-out-link" onClick={(e) => {
           e.preventDefault();
@@ -498,10 +522,22 @@ const TimeEntryList = () => {
         </table>
       )}
 
-      {/* Invisible loader element for intersection observer */}
-      <div className="infinite-scroll-loader" ref={loaderRef}>
-        {isLoading && <div className="loading-indicator">Loading more...</div>}
-      </div>
+      {/* Load more button */}
+      {hasMoreDates && (
+        <div className="load-more-container">
+          <button 
+            className="load-more-button" 
+            onClick={handleLoadMore}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Loading...' : 'Load more dates'}
+          </button>
+        </div>
+      )}
+      
+      {!hasMoreDates && entries.length > 0 && (
+        <div className="end-of-content">No more entries to load</div>
+      )}
     </div>
   );
 };
