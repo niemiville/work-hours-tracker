@@ -229,7 +229,36 @@ const TimeEntryList = () => {
 
   const handleEdit = (entry: TimeEntry) => setEditingEntry(entry);
   const handleCancelEdit = () => setEditingEntry(null);
-  const formatDate = (date: string) => new Date(date).toLocaleDateString("fi-FI");
+  
+  // Enhanced date formatter to include weekday in English and week number
+  const formatDate = (date: string) => {
+    const dateObj = new Date(date);
+    
+    // Get weekday name in English
+    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const weekday = weekdays[dateObj.getDay()];
+    
+    // Get date in Finnish format
+    const formattedDate = dateObj.toLocaleDateString("fi-FI");
+    
+    // Calculate ISO week number (week with 4 or more days in January is week 1)
+    const getWeekNumber = (d: Date): number => {
+      // Copy date so don't modify original
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      // Set to nearest Thursday: current date + 4 - current day number
+      // Make Sunday's day number 7
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      // Get first day of year
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      // Calculate full weeks to nearest Thursday
+      const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+      return weekNo;
+    };
+    
+    const weekNumber = getWeekNumber(dateObj);
+    
+    return `${weekday} ${formattedDate} | Week ${weekNumber}`;
+  };
 
   const handleDelete = async (id: number) => {
     if (!user) return;
@@ -442,7 +471,7 @@ const TimeEntryList = () => {
                   // Explicitly set the row class to ensure consistency
                   tableRows.push(
                     <tr key={entry.id} className="date-group-even">
-                      <td>{formatDate(entry.date)}</td>
+                      <td>{new Date(entry.date).toLocaleDateString("fi-FI")}</td>
                       <td>{entry.tasktype}</td>
                       <td>{entry.taskid || ''}</td>
                       <td>{entry.description}</td>

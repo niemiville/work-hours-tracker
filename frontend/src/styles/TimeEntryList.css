@@ -402,3 +402,37 @@
     font-size: 16px;
   }
   
+  /* Date separator row styling */
+  tr.date-separator {
+    background-color: #f5f5f5 !important;
+    font-weight: bold;
+    border-top: 2px solid #e0e0e0;
+    border-bottom: 2px solid #e0e0e0;
+  }
+  
+  tr.date-separator td {
+    padding: 10px 8px !important;
+    text-transform: capitalize;
+  }
+  
+  tr.date-separator td:first-child {
+    font-size: 16px;
+    white-space: nowrap; /* Prevent wrapping to ensure vertical bar alignment */
+  }
+  
+  .hours-summary {
+    text-align: right;
+    color: #555;
+    font-size: 16px;
+  }
+  
+  /* Override hours summary color in date separators to keep it white */
+  tr.date-separator .hours-summary {
+    color: inherit !important;
+  }
+  
+  .target-matched {
+    color: #4caf50;
+    font-weight: bold;
+  }
+  
