@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { TimeEntry, CreateTimeEntryRequest, UpdateTimeEntryRequest, TimeEntriesResponse, fetchTimeEntries, createTimeEntry, updateTimeEntry, deleteTimeEntry } from "../api/timeEntryApi";
+import { TimeEntry, CreateTimeEntryRequest, UpdateTimeEntryRequest, fetchTimeEntries, createTimeEntry, updateTimeEntry, deleteTimeEntry } from "../api/timeEntryApi";
 import "../styles/TimeEntryList.css";
 
 type TimeEntryForm = Omit<TimeEntry, "id">;
@@ -21,7 +21,6 @@ const TimeEntryList = () => {
   });
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalDates, setTotalDates] = useState<number>(0);
   const [hasMoreDates, setHasMoreDates] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadedEntryIds, setLoadedEntryIds] = useState<Set<number>>(new Set());
@@ -83,7 +82,6 @@ const TimeEntryList = () => {
       }
       
       setCurrentPage(data.page);
-      setTotalDates(data.totalDates);
       
       // Check if we've loaded all dates based on backend info
       setHasMoreDates(data.page * data.limit < data.totalDates);
@@ -193,8 +191,6 @@ const TimeEntryList = () => {
         alert("Invalid hours value. Please enter a valid number.");
         return;
       }
-      
-      const createdEntry = await createTimeEntry(entryToCreate, user.token);
       
       // Completely reset and reload entries from first page
       setLoadedEntryIds(new Set());
