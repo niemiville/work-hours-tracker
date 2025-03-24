@@ -378,7 +378,6 @@
   
   tr.date-separator td {
     padding: 10px 8px !important;
-    text-transform: capitalize;
   }
   
   tr.date-separator td:first-child {
@@ -388,15 +387,9 @@
   
   .hours-summary {
     text-align: right;
-    color: #555;
     font-size: 16px;
   }
-  
-  /* Override hours summary color in date separators to keep it white */
-  tr.date-separator .hours-summary {
-    color: inherit !important;
-  }
-  
+
   .target-matched {
     color: #4caf50;
     font-weight: bold;
