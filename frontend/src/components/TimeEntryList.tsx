@@ -11,7 +11,7 @@ interface TimeEntryListProps {
   onEditEntry: (entry: TimeEntry | null) => void;
 }
 
-const TimeEntryList: React.FC<TimeEntryListProps> = ({ user, onSignOut, onEditEntry }) => {
+const TimeEntryList: React.FC<TimeEntryListProps> = ({ user, onEditEntry }) => {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasMoreDates, setHasMoreDates] = useState<boolean>(true);

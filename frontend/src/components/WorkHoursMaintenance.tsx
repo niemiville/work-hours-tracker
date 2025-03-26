@@ -3,14 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import AddTimeEntry from "./AddTimeEntry";
 import TimeEntryList from "./TimeEntryList";
+import ImportAndExport from "./ImportAndExport";
 import { TimeEntry } from "../api/timeEntryApi";
 import "../styles/WorkHoursMaintenance.css";
+
+type ActiveView = 'time-entries' | 'import-export';
 
 const WorkHoursMaintenance: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
+  const [activeView, setActiveView] = useState<ActiveView>('time-entries');
   
   // Current date in ISO format for the add entry form
   const currentDate = new Date().toISOString().split("T")[0];
@@ -43,6 +47,15 @@ const WorkHoursMaintenance: React.FC = () => {
     handleEntryChange();
   };
 
+  // Switch between views
+  const switchView = (view: ActiveView) => {
+    setActiveView(view);
+    // If switching away from time entries, clear any editing state
+    if (view !== 'time-entries') {
+      setEditingEntry(null);
+    }
+  };
+
   // If not authenticated, redirect to sign in
   React.useEffect(() => {
     if (!user) {
@@ -61,9 +74,22 @@ const WorkHoursMaintenance: React.FC = () => {
         <div className="topbar-center">
           <nav className="main-nav">
             <ul>
-              <li className="active"><a href="#">Time Entries</a></li>
-              <li><a href="#">Reports</a></li>
-              <li><a href="#">Settings</a></li>
+              <li className={activeView === 'time-entries' ? 'active' : ''}>
+                <a href="#" onClick={(e) => {
+                  e.preventDefault();
+                  switchView('time-entries');
+                }}>
+                  Time Entries
+                </a>
+              </li>
+              <li className={activeView === 'import-export' ? 'active' : ''}>
+                <a href="#" onClick={(e) => {
+                  e.preventDefault();
+                  switchView('import-export');
+                }}>
+                  Import/Export
+                </a>
+              </li>
             </ul>
           </nav>
         </div>
@@ -82,31 +108,48 @@ const WorkHoursMaintenance: React.FC = () => {
 
       <div className="main-content">
         <div className="work-hours-content">
-          <h2 className="section-title">Time Entries</h2>
-          
-          <div className="add-entry-section">
-            <h3 className="subsection-title">
-              {editingEntry ? "Edit Time Entry" : "Add New Entry"}
-            </h3>
-            <AddTimeEntry 
-              user={user} 
-              onEntryAdded={handleEntryChange} 
-              currentDate={currentDate}
-              editingEntry={editingEntry}
-              onCancelEdit={handleCancelEdit}
-              onUpdateComplete={handleUpdateComplete}
-            />
-          </div>
-          
-          <div className="time-entries-section">
-            <h3 className="subsection-title">Your Time Entries</h3>
-            <TimeEntryList 
-              user={user} 
-              onSignOut={handleSignOut}
-              onEditEntry={handleSetEditingEntry}
-              key={refreshTrigger} // Force re-render when entries change
-            />
-          </div>
+          {activeView === 'time-entries' ? (
+            <>
+              <h2 className="section-title">Time Entries</h2>
+              
+              <div className="add-entry-section">
+                <h3 className="subsection-title">
+                  {editingEntry ? "Edit Time Entry" : "Add New Entry"}
+                </h3>
+                <AddTimeEntry 
+                  user={user} 
+                  onEntryAdded={handleEntryChange} 
+                  currentDate={currentDate}
+                  editingEntry={editingEntry}
+                  onCancelEdit={handleCancelEdit}
+                  onUpdateComplete={handleUpdateComplete}
+                />
+              </div>
+              
+              <div className="time-entries-section">
+                <h3 className="subsection-title">Your Time Entries</h3>
+                <TimeEntryList 
+                  user={user} 
+                  onSignOut={handleSignOut}
+                  onEditEntry={handleSetEditingEntry}
+                  key={refreshTrigger} // Force re-render when entries change
+                />
+                <div className="quick-actions">
+                  <button 
+                    className="quick-export-button"
+                    onClick={() => switchView('import-export')}
+                  >
+                    Export Time Entries
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="section-title">Import & Export</h2>
+              <ImportAndExport onSignOut={handleSignOut} />
+            </>
+          )}
         </div>
       </div>
     </div>
