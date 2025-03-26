@@ -1,31 +1,22 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
-import { TimeEntry, CreateTimeEntryRequest, UpdateTimeEntryRequest, fetchTimeEntries, createTimeEntry, updateTimeEntry, deleteTimeEntry } from "../api/timeEntryApi";
+import { TimeEntry, fetchTimeEntries, deleteTimeEntry, createTimeEntry } from "../api/timeEntryApi";
 import "../styles/TimeEntryList.css";
-
-type TimeEntryForm = Omit<TimeEntry, "id">;
 
 // Daily hours target constant
 const DAILY_HOURS_TARGET = 7.5;
 
-const TimeEntryList = () => {
+interface TimeEntryListProps {
+  user: { id: number; token: string } | null;
+  onSignOut: () => void;
+  onEditEntry: (entry: TimeEntry | null) => void;
+}
+
+const TimeEntryList: React.FC<TimeEntryListProps> = ({ user, onSignOut, onEditEntry }) => {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
-  const [newEntry, setNewEntry] = useState<TimeEntryForm>({
-    userid: 0,
-    date: new Date().toISOString().split('T')[0],
-    tasktype: "",
-    taskid: null,
-    description: "",
-    hours: 0,
-  });
-  const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hasMoreDates, setHasMoreDates] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadedEntryIds, setLoadedEntryIds] = useState<Set<number>>(new Set());
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const tableRef = useRef<HTMLTableElement>(null);
   const loadingRef = useRef<boolean>(false);
 
@@ -100,13 +91,10 @@ const TimeEntryList = () => {
   };
 
   useEffect(() => {
-    if (!user) {
-      navigate("/signin");
-      return;
+    if (user) {
+      loadEntries(1, false);
     }
-
-    loadEntries(1, false);
-  }, [navigate, user]);
+  }, [user]);
 
   // Debug effect to check styles on date separators
   useEffect(() => {
@@ -121,127 +109,13 @@ const TimeEntryList = () => {
     }
   }, [entries]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const handleEdit = (entry: TimeEntry) => {
+    // Pass the entry to the parent component for editing
+    onEditEntry(entry);
     
-    // Special handling for hours to ensure it's always a number
-    if (name === 'hours') {
-      const numValue = value === '' ? 0 : Number(value);
-      
-      if (editingEntry) {
-        setEditingEntry({ 
-          ...editingEntry, 
-          hours: numValue
-        });
-      } else {
-        setNewEntry((prev) => ({ 
-          ...prev, 
-          hours: numValue
-        }));
-      }
-      return;
-    }
-    
-    if (editingEntry) {
-      setEditingEntry({ 
-        ...editingEntry, 
-        [name]: name === 'taskid' ? (value === '' ? null : Number(value)) : value 
-      });
-    } else {
-      setNewEntry((prev) => ({ 
-        ...prev, 
-        [name]: name === 'taskid' ? (value === '' ? null : Number(value)) : value 
-      }));
-    }
+    // Scroll to the top of the page to show the edit form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const isFormValid = () => {
-    return newEntry.date && 
-           newEntry.tasktype.trim() && 
-           newEntry.hours > 0;
-  };
-
-  const handleCreate = async () => {
-    if (!newEntry || !user) return;
-
-    // Validate required fields
-    if (!newEntry.date || !newEntry.tasktype.trim()) {
-      alert("Please fill in both Date and Task Type fields");
-      return;
-    }
-
-    // Validate hours is not negative or zero
-    if (newEntry.hours <= 0) {
-      alert("Hours cannot be negative or zero");
-      return;
-    }
-
-    try {
-      const entryToCreate: CreateTimeEntryRequest = {
-        date: newEntry.date,
-        tasktype: newEntry.tasktype,
-        taskid: newEntry.taskid,
-        description: newEntry.description,
-        // Ensure hours is a number
-        hours: typeof newEntry.hours === 'number' ? newEntry.hours : parseFloat(String(newEntry.hours))
-      };
-      
-      // Final check that hours is a valid number
-      if (isNaN(entryToCreate.hours)) {
-        alert("Invalid hours value. Please enter a valid number.");
-        return;
-      }
-      
-      // Completely reset and reload entries from first page
-      setLoadedEntryIds(new Set());
-      loadEntries(1, false);
-      
-      setNewEntry({ 
-        userid: user.id, 
-        date: newEntry.date, 
-        tasktype: "", 
-        taskid: null, 
-        description: "", 
-        hours: 0 
-      });
-      // Reset the task ID input field
-      const taskIdInput = document.querySelector('input[name="taskid"]') as HTMLInputElement;
-      if (taskIdInput) {
-        taskIdInput.value = '';
-      }
-    } catch (error) {
-      console.error("Failed to create time entry:", error);
-      alert("Failed to create time entry. Please try again.");
-    }
-  };
-
-  const handleUpdate = async () => {
-    if (!editingEntry || !user) return;
-
-    try {
-      const entryToUpdate: UpdateTimeEntryRequest = {
-        date: editingEntry.date,
-        tasktype: editingEntry.tasktype,
-        taskid: editingEntry.taskid,
-        description: editingEntry.description,
-        hours: typeof editingEntry.hours === 'number' ? editingEntry.hours : parseFloat(String(editingEntry.hours))
-      };
-      
-      await updateTimeEntry(editingEntry.id, entryToUpdate, user.token);
-      
-      // Reset loaded entry IDs and reload all entries
-      setLoadedEntryIds(new Set());
-      loadEntries(1, false);
-      
-      setEditingEntry(null);
-    } catch (error) {
-      console.error("Failed to update time entry:", error);
-      alert("Failed to update time entry. Please try again.");
-    }
-  };
-
-  const handleEdit = (entry: TimeEntry) => setEditingEntry(entry);
-  const handleCancelEdit = () => setEditingEntry(null);
   
   // Enhanced date formatter to include weekday in English and week number
   const formatDate = (date: string) => {
@@ -309,8 +183,8 @@ const TimeEntryList = () => {
     if (!user) return;
     
     try {
-      const duplicateEntry: CreateTimeEntryRequest = {
-        date: newEntry.date, // Use the currently selected date in the form
+      const duplicateEntry = {
+        date: new Date().toISOString().split('T')[0], // Use today's date
         tasktype: entry.tasktype,
         taskid: entry.taskid,
         description: entry.description,
@@ -328,85 +202,8 @@ const TimeEntryList = () => {
     }
   };
 
-  const handleDuplicateYesterday = async () => {
-    // Functionality would be similar - duplicating entries from yesterday
-    // Implement if needed
-  };
-
-  const handleSignOut = () => {
-    logout();
-    navigate("/signin");
-  };
-
   return (
-    <div className="time-entry-container">
-      <div className="header-container">
-        <a href="#" className="sign-out-link" onClick={(e) => {
-          e.preventDefault();
-          handleSignOut();
-        }}>
-          Sign out
-        </a>
-      </div>
-      
-      <div className="form-container">
-        <div className="input-row">
-          <div>
-            <label>Date</label>
-            <input type="date" name="date" value={editingEntry?.date || newEntry.date} onChange={handleInputChange} />
-          </div>
-
-          <div>
-            <label>Task Type</label>
-            <input type="text" name="tasktype" value={editingEntry?.tasktype || newEntry.tasktype} onChange={handleInputChange} />
-          </div>
-
-          <div>
-            <label>Task ID</label>
-            <input type="number" name="taskid" value={editingEntry?.taskid || newEntry.taskid || ''} onChange={handleInputChange} />
-          </div>
-
-          <div>
-            <label>Hours</label>
-            <input type="number" name="hours" step="0.25" value={editingEntry?.hours || newEntry.hours} onChange={handleInputChange} />
-          </div>
-        </div>
-
-        <div>
-          <label>Description</label>
-          <textarea name="description" value={editingEntry?.description || newEntry.description} onChange={handleInputChange} />
-        </div>
-
-        <div className="form-actions">
-          {editingEntry ? (
-            <>
-              <button className="save-button" onClick={handleUpdate}>
-                Save Changes
-              </button>
-              <button className="cancel-button" onClick={handleCancelEdit}>
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <button 
-                className="duplicate-yesterday-button" 
-                onClick={handleDuplicateYesterday}
-              >
-                Duplicate yesterday
-              </button>
-              <button 
-                className="add-button" 
-                onClick={handleCreate}
-                disabled={!isFormValid()}
-              >
-                Add entry
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
+    <div>
       {entries.length === 0 && !isLoading ? (
         <div className="no-entries">No time entries found. Add your first entry above.</div>
       ) : (

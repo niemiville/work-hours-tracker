@@ -1,0 +1,177 @@
+/* Main container */
+.work-hours-container {
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top bar */
+.topbar {
+  background-color: #4CAF50;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.topbar-left, .topbar-center, .topbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.app-title {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Navigation */
+.main-nav ul {
+  display: flex;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  gap: 1.5rem;
+}
+
+.main-nav ul li a {
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 0.5rem;
+  display: inline-block;
+  font-weight: 500;
+  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+}
+
+.main-nav ul li.active a {
+  border-bottom: 3px solid white;
+}
+
+.main-nav ul li a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* User info area */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+.sign-out-link {
+  color: white;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+}
+
+.sign-out-link:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+  background-color: #f9f9f9;
+}
+
+.work-hours-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.section-title {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.75rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.subsection-title {
+  color: #4CAF50;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+/* Add entry section */
+.add-entry-section {
+  margin-bottom: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid #eee;
+}
+
+/* Edit entry container */
+.edit-entry-container {
+  margin-bottom: 2rem;
+  background-color: #f0f8f0; /* Light green background */
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 2px solid #4CAF50;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.edit-entry-title {
+  color: #2e7d32;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-bottom: 1px solid #c5e1c5;
+  padding-bottom: 0.5rem;
+}
+
+/* Time entries section */
+.time-entries-section {
+  padding: 1rem 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .topbar {
+    flex-direction: column;
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .topbar-left, .topbar-center, .topbar-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .main-nav ul {
+    gap: 0.5rem;
+  }
+
+  .user-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .work-hours-content {
+    padding: 1rem;
+  }
+
+  .form-container .input-row {
+    flex-direction: column;
+  }
+} 

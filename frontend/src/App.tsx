@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
 import SignIn from './components/SignIn';
-import TimeEntryList from './components/TimeEntryList';
 import SignUp from './components/SignUp';
+import WorkHoursMaintenance from './components/WorkHoursMaintenance';
 
 function App() {
     return (
@@ -12,7 +12,7 @@ function App() {
                     <Route path="/" element={<SignIn />} />
                     <Route path="/signin" element={<SignIn />} />
                     <Route path="/signup" element={<SignUp />} />
-                    <Route path="/workhours" element={<TimeEntryList />} />
+                    <Route path="/workhours" element={<WorkHoursMaintenance />} />
                 </Routes>
             </Router>
         </AuthProvider>
