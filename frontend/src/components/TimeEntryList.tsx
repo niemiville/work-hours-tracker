@@ -96,19 +96,6 @@ const TimeEntryList: React.FC<TimeEntryListProps> = ({ user, onEditEntry }) => {
     }
   }, [user]);
 
-  // Debug effect to check styles on date separators
-  useEffect(() => {
-    if (tableRef.current) {
-      const separators = tableRef.current.querySelectorAll('tr.date-separator');
-      console.log(`Found ${separators.length} date separators`);
-      
-      separators.forEach((separator, index) => {
-        const computedStyle = window.getComputedStyle(separator);
-        console.log(`Separator ${index} background color:`, computedStyle.backgroundColor);
-      });
-    }
-  }, [entries]);
-
   const handleEdit = (entry: TimeEntry) => {
     // Pass the entry to the parent component for editing
     onEditEntry(entry);

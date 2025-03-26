@@ -154,6 +154,8 @@
   border-radius: 8px;
   display: flex;
   justify-content: flex-end;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .quick-export-button {
@@ -178,6 +180,30 @@
   content: "↓";
   margin-right: 6px;
   font-weight: bold;
+}
+
+.quick-stats-button {
+  background-color: #9C27B0;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.quick-stats-button:hover {
+  background-color: #7B1FA2;
+}
+
+.quick-stats-button:before {
+  content: "📊";
+  margin-right: 6px;
+  font-size: 1.1rem;
 }
 
 /* Import/Export styles */
