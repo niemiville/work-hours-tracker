@@ -2,7 +2,7 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:latest
-    container_name: work-hours-db
+    container_name: work-hours-db-production
     restart: always
     environment:
       POSTGRES_USER: user
