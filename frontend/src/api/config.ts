@@ -1,5 +1,5 @@
-// Get the API base URL from environment variables, or use default
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// We're using nginx proxy so we can use relative URLs
+const API_BASE_URL = '/api';
 
 // Define API endpoints
 export const API_ENDPOINTS = {
