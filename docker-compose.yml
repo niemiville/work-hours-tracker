@@ -11,7 +11,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - /home/ville/work_postgres_data:/var/lib/postgresql/data
       - ./database/tables.sql:/docker-entrypoint-initdb.d/01-tables.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U toshiba -d workhours"]
@@ -49,7 +49,3 @@ services:
       - backend
     ports:
       - "20080:80"
-
-volumes:
-  pgdata:
-    driver: local

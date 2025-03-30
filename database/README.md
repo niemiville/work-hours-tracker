@@ -35,7 +35,7 @@
 
 - **Connect to PostgreSQL CLI:**
   ```sh
-  docker exec -it work-hours-db psql -U user -d workhours
+  docker exec -it work-hours-db-toshiba psql -U toshiba -d workhours
   ```
 
 ## Container Management
