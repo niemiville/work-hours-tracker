@@ -4,6 +4,7 @@ import { login as loginApi, logout as logoutApi, getUser } from '../api/authApi'
 type User = {
     id: number;
     name: string;
+    displayname: string;
     token: string;
 };
 

@@ -6,6 +6,7 @@ import "../styles/Auth.css";
 const SignUp = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [displayname, setDisplayname] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -14,7 +15,7 @@ const SignUp = () => {
     setError("");
 
     try {
-      await signUp(name, password);
+      await signUp(name, password, displayname); 
       navigate("/signin"); // Redirect to sign in after successful signup
     } catch (err) {
       setError("Signup failed. Try again.");
@@ -34,6 +35,17 @@ const SignUp = () => {
             value={name} 
             onChange={(e) => setName(e.target.value)} 
             placeholder="Choose a username"
+            required 
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="displayname">Display Name</label>
+          <input 
+            id="displayname"
+            type="text" 
+            value={displayname} 
+            onChange={(e) => setDisplayname(e.target.value)} 
+            placeholder="Enter your display name"
             required 
           />
         </div>

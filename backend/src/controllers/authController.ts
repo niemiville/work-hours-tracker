@@ -12,17 +12,18 @@ interface AuthRequest extends Request {
 interface User {
     id: number;
     name: string;
+    displayname: string;
     password: string;
 }
 
 // 🔹 User Signup
 export const signup = async (req: Request, res: Response): Promise<any> => {
-    const { name, password } = req.body;
+    const { name, password, displayname } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const result = await pool.query(
-            'INSERT INTO users (name, password) VALUES ($1, $2) RETURNING id, name',
-            [name, hashedPassword]
+            'INSERT INTO users (name, password, displayname) VALUES ($1, $2, $3) RETURNING id, name, displayname',
+            [name, hashedPassword, displayname]
         );
         return res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -45,8 +46,8 @@ export const login = async (req: Request, res: Response): Promise<any> => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ id: user.id, name: user.name }, SECRET_KEY, { expiresIn: '1h' });
-        return res.json({ token, user: { id: user.id, name: user.name } });
+        const token = jwt.sign({ id: user.id, name: user.name, displayname: user.displayname }, SECRET_KEY, { expiresIn: '1h' });
+        return res.json({ token, user: { id: user.id, name: user.name, displayname: user.displayname } });
     } catch (err) {
         return res.status(500).json({ error: 'Database error' });
     }
@@ -68,6 +69,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): a
     }
 };
 
+// 🔹 Get User
 export const getUser = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         if (!req.user) {

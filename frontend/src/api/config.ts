@@ -1,5 +1,5 @@
 // We're using nginx proxy so we can use relative URLs
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 // Define API endpoints
 export const API_ENDPOINTS = {

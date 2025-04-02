@@ -14,8 +14,10 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     password TEXT NOT NULL,
+    displayname VARCHAR(100),
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated TIMESTAMP
 );
 
 ALTER TABLE timeentry ALTER COLUMN taskid DROP NOT NULL;
+ALTER TABLE users ADD COLUMN displayname VARCHAR(100);

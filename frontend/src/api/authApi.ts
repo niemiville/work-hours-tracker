@@ -17,8 +17,8 @@ axios.interceptors.request.use(
     }
 );
 
-export const signUp = async (name: string, password: string) => {
-    const response = await axios.post(`${API_URL}/signup`, { name, password });
+export const signUp = async (name: string, password: string, displayname: string) => {
+    const response = await axios.post(`${API_URL}/signup`, { name, password, displayname });
     return response.data;
 };
 

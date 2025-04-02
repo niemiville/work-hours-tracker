@@ -104,7 +104,7 @@ const WorkHoursMaintenance: React.FC = () => {
         </div>
         <div className="topbar-right">
           <div className="user-info">
-            <span className="user-name">{user.name}</span>
+            <span className="user-name">{user.displayname}</span>
             <a href="#" className="sign-out-link" onClick={(e) => {
               e.preventDefault();
               handleSignOut();
