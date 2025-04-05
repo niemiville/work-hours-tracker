@@ -25,36 +25,51 @@ This application is fully containerized and can be run using Docker and Docker C
    ```
 
 3. Access the application:
-   - Frontend: http://localhost:80
-   - Backend API: http://localhost:3001/api
+   - Frontend: http://<your-ip>:20080
+   - Backend API: Available through the frontend at /api (not directly accessible)
+
+### Rebuilding the Application
+
+To rebuild the application after making changes:
+
+1. Rebuild and restart with cache (for routine updates):
+   ```bash
+   docker-compose up --build -d
+   ```
+
+2. Force a complete rebuild ignoring cache (for troubleshooting or major changes):
+   ```bash
+   docker-compose build --no-cache && docker-compose up -d
+   ```
 
 ### Services
 
 The application consists of three main services:
 
 1. **Database (PostgreSQL)**
-   - Persists data in a named volume
+   - Persists data in a mounted volume at /home/ville/work_postgres_data
    - Automatically runs initialization scripts to create tables
-   - Accessible on port 5432 (if needed for direct access)
+   - Accessible only locally on 127.0.0.1:5432
 
 2. **Backend (Node.js)**
    - RESTful API built with Express
    - JWT authentication
    - Connected to the database service
-   - Exposed on port 3001
+   - Not directly exposed outside Docker network
+   - Accessible through frontend's Nginx proxy at /api
 
 3. **Frontend (React)**
    - Single page application built with React
    - Served by Nginx
-   - Exposed on port 80
+   - Exposed on port 20080
 
 ### Environment Variables
 
 The following environment variables can be modified in the docker-compose.yml file:
 
 #### Database
-- `POSTGRES_USER`: Database username (default: user)
-- `POSTGRES_PASSWORD`: Database password (default: password)
+- `POSTGRES_USER`: Database username (default: toshiba)
+- `POSTGRES_PASSWORD`: Database password (default: change_db_password)
 - `POSTGRES_DB`: Database name (default: workhours)
 
 #### Backend
@@ -78,4 +93,4 @@ For local development without Docker:
 
 ### Data Persistence
 
-The PostgreSQL database data is stored in a Docker volume named `pgdata`, ensuring that your data persists across container restarts.
+The PostgreSQL database data is stored in a mounted volume at /home/ville/work_postgres_data, ensuring that your data persists across container restarts.
