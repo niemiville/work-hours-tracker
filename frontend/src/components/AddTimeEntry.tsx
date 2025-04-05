@@ -32,6 +32,7 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
   });
   
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [hoursInputValue, setHoursInputValue] = useState<string>('');
   const formRef = useRef<HTMLDivElement>(null);
 
   // Update form when editingEntry changes
@@ -47,6 +48,9 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
         description: editingEntry.description,
         hours: editingEntry.hours
       });
+      
+      // Update hours input value
+      setHoursInputValue(String(editingEntry.hours));
       
       // Force a reflow before changing the mode
       if (formRef.current) {
@@ -71,6 +75,9 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
           hours: 0,
         });
         
+        // Clear hours input value
+        setHoursInputValue('');
+        
         // Reset the task ID input fields if they exist
         const taskIdInput = document.querySelector('input[name="taskid"]') as HTMLInputElement;
         if (taskIdInput) {
@@ -87,10 +94,19 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
-    // Special handling for hours to ensure it's always a number
+    // Special handling for hours
     if (name === 'hours') {
-      const numValue = value === '' ? 0 : Number(value);
-      setFormData((prev) => ({ ...prev, hours: numValue }));
+      // Store the raw input value for display
+      setHoursInputValue(value);
+      
+      // Convert to number for form data
+      // If empty, set to 0 but keep display value empty
+      const numValue = value === '' ? 0 : parseFloat(value.replace(',', '.'));
+      
+      // Only update if it's a valid number
+      if (!isNaN(numValue)) {
+        setFormData((prev) => ({ ...prev, hours: numValue }));
+      }
       return;
     }
     
@@ -98,6 +114,11 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
       ...prev, 
       [name]: (name === 'taskid' || name === 'subtaskid') ? (value === '' ? null : Number(value)) : value 
     }));
+  };
+  
+  // Focus handler for hours field to highlight all content when focused
+  const handleHoursFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.target.select();
   };
 
   const isFormValid = () => {
@@ -154,6 +175,9 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
         hours: 0 
       });
       
+      // Clear hours input value
+      setHoursInputValue('');
+      
       // Reset the task ID input fields
       const taskIdInput = document.querySelector('input[name="taskid"]') as HTMLInputElement;
       if (taskIdInput) {
@@ -200,6 +224,9 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
       }
       
       await updateTimeEntry(editingEntry.id, entryToUpdate, user.token);
+      
+      // Clear hours input value
+      setHoursInputValue('');
       
       // Notify parent component about the update
       if (onUpdateComplete) {
@@ -314,11 +341,12 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
         <div>
           <label>Hours</label>
           <input 
-            type="number" 
+            type="text" 
             name="hours" 
-            step="0.25" 
-            value={formData.hours} 
+            placeholder="0.00"
+            value={hoursInputValue} 
             onChange={handleInputChange}
+            onFocus={handleHoursFocus}
           />
         </div>
       </div>

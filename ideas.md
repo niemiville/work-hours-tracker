@@ -6,7 +6,6 @@
 - **Task Details View** to add more specific information about each task (name, time estimation, detailed description)
 - **Dark Mode** for better user experience in low-light environments
 - **Project categorization** - Add parent projects/categories for organizing related tasks
-- Fix chrome bug where there is 0 by default on hours field
 - Task search feture to stats view.
 - Make sure updated column is used in database
 
