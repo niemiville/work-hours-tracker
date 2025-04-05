@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { TimeEntry, createTimeEntry, updateTimeEntry, fetchEntriesByDate, fetchLatestEntriesBeforeDate } from "../api/timeEntryApi";
+import { TimeEntry, createTimeEntry, updateTimeEntry, fetchLatestEntriesBeforeDate } from "../api/timeEntryApi";
 import "../styles/TimeEntryList.css";
 
 type TimeEntryForm = Omit<TimeEntry, "id">;
