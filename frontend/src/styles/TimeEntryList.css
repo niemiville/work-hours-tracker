@@ -113,10 +113,10 @@
     margin-bottom: 25px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
     max-width: 100%;
     transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-    padding: 20px;
+    padding: 25px;
     border-radius: 8px;
     border: 2px solid transparent;
     box-shadow: 0 0 0 rgba(0, 0, 0, 0);
@@ -143,9 +143,9 @@
   
   .form-container .input-row {
     display: flex;
-    gap: 25px;
+    gap: 20px;
     align-items: flex-start;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     padding: 15px;
     border-radius: 6px;
     transition: background-color 0.25s ease;
@@ -153,7 +153,19 @@
   
   .form-container .input-row > div {
     flex: 1;
-    min-width: 0;
+    min-width: 140px;
+    margin-bottom: 10px;
+  }
+  
+  .form-container .description-row {
+    margin-top: 5px;
+    width: 100%;
+  }
+  
+  .form-container textarea {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
   }
   
   .form-container label {
@@ -178,16 +190,6 @@
     border-color: #4CAF50;
     outline: none;
     box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
-  }
-  
-  .form-container textarea {
-    min-height: 100px;
-    resize: vertical;
-  }
-  
-  /* Make description field span full width */
-  .form-container > div:nth-child(4) {
-    grid-column: 1 / -1;
   }
   
   /* Make form actions span full width */

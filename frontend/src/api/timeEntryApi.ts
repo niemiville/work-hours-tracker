@@ -9,6 +9,7 @@ export interface TimeEntry {
   date: string;
   tasktype: string;
   taskid: number | null;
+  subtaskid: number | null;
   description: string;
   hours: number;
 }
@@ -17,6 +18,7 @@ export interface CreateTimeEntryRequest {
   date: string;
   tasktype: string;
   taskid: number | null;
+  subtaskid: number | null;
   description?: string;
   hours: number;
 }
@@ -25,6 +27,7 @@ export interface UpdateTimeEntryRequest {
   date: string;
   tasktype: string;
   taskid: number | null;
+  subtaskid: number | null;
   description?: string;
   hours: number;
 }
@@ -66,4 +69,20 @@ export const deleteTimeEntry = async (id: number, token: string): Promise<void> 
   await axios.delete(`${API_URL}/${id}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
+};
+
+// ✅ Fetch time entries for a specific date (Authenticated)
+export const fetchEntriesByDate = async (date: string, token: string): Promise<TimeEntry[]> => {
+  const response = await axios.get(`${API_URL}/date/${date}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data.entries;
+};
+
+// ✅ Fetch latest entries before a specific date (Authenticated)
+export const fetchLatestEntriesBeforeDate = async (date: string, token: string): Promise<{entries: TimeEntry[], latestDate: string | null}> => {
+  const response = await axios.get(`${API_URL}/latest-before/${date}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
 };

@@ -174,6 +174,7 @@ const TimeEntryList: React.FC<TimeEntryListProps> = ({ user, onEditEntry }) => {
         date: new Date().toISOString().split('T')[0], // Use today's date
         tasktype: entry.tasktype,
         taskid: entry.taskid,
+        subtaskid: entry.subtaskid,
         description: entry.description,
         hours: entry.hours
       };
@@ -200,6 +201,7 @@ const TimeEntryList: React.FC<TimeEntryListProps> = ({ user, onEditEntry }) => {
               <th>Date</th>
               <th>Task Type</th>
               <th>Task ID</th>
+              <th>Sub Task ID</th>
               <th>Description</th>
               <th>Hours</th>
               <th>Actions</th>
@@ -258,7 +260,7 @@ const TimeEntryList: React.FC<TimeEntryListProps> = ({ user, onEditEntry }) => {
                     data-row-type="date-separator"
                   >
                     <td colSpan={2}>{formatDate(date)}</td>
-                    <td colSpan={4} className="hours-summary">
+                    <td colSpan={5} className="hours-summary">
                       Total: {totalHoursFormatted} hours | 
                       {remainingHours > 0 
                         ? ` Need ${remainingHoursFormatted} more to reach ${DAILY_HOURS_TARGET} hours`
@@ -278,6 +280,7 @@ const TimeEntryList: React.FC<TimeEntryListProps> = ({ user, onEditEntry }) => {
                       <td>{new Date(entry.date).toLocaleDateString("fi-FI")}</td>
                       <td>{entry.tasktype}</td>
                       <td>{entry.taskid || ''}</td>
+                      <td>{entry.subtaskid || ''}</td>
                       <td>{entry.description}</td>
                       <td>{entry.hours}</td>
                       <td className="action-buttons">

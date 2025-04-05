@@ -6,6 +6,7 @@ CREATE TABLE timeentry (
     date DATE NOT NULL,
     tasktype VARCHAR(50) NOT NULL,
     taskid INT,
+    subtaskid INT,
     description TEXT,
     hours DECIMAL(5,2) NOT NULL
 );
@@ -21,3 +22,4 @@ CREATE TABLE users (
 
 ALTER TABLE timeentry ALTER COLUMN taskid DROP NOT NULL;
 ALTER TABLE users ADD COLUMN displayname VARCHAR(100);
+ALTER TABLE timeentry ADD COLUMN subtaskid INT;

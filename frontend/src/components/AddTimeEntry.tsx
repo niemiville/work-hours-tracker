@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { TimeEntry, createTimeEntry, updateTimeEntry } from "../api/timeEntryApi";
+import { TimeEntry, createTimeEntry, updateTimeEntry, fetchEntriesByDate, fetchLatestEntriesBeforeDate } from "../api/timeEntryApi";
 import "../styles/TimeEntryList.css";
 
 type TimeEntryForm = Omit<TimeEntry, "id">;
@@ -26,6 +26,7 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
     date: currentDate,
     tasktype: "",
     taskid: null,
+    subtaskid: null,
     description: "",
     hours: 0,
   });
@@ -42,6 +43,7 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
         date: editingEntry.date,
         tasktype: editingEntry.tasktype,
         taskid: editingEntry.taskid,
+        subtaskid: editingEntry.subtaskid,
         description: editingEntry.description,
         hours: editingEntry.hours
       });
@@ -64,14 +66,19 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
           date: currentDate,
           tasktype: "",
           taskid: null,
+          subtaskid: null,
           description: "",
           hours: 0,
         });
         
-        // Reset the task ID input field if it exists
+        // Reset the task ID input fields if they exist
         const taskIdInput = document.querySelector('input[name="taskid"]') as HTMLInputElement;
         if (taskIdInput) {
           taskIdInput.value = '';
+        }
+        const subtaskIdInput = document.querySelector('input[name="subtaskid"]') as HTMLInputElement;
+        if (subtaskIdInput) {
+          subtaskIdInput.value = '';
         }
       }, 50); // Small delay to prevent jarring transition
     }
@@ -89,7 +96,7 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
     
     setFormData((prev) => ({ 
       ...prev, 
-      [name]: name === 'taskid' ? (value === '' ? null : Number(value)) : value 
+      [name]: (name === 'taskid' || name === 'subtaskid') ? (value === '' ? null : Number(value)) : value 
     }));
   };
 
@@ -119,6 +126,7 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
         date: formData.date,
         tasktype: formData.tasktype,
         taskid: formData.taskid,
+        subtaskid: formData.subtaskid,
         description: formData.description,
         // Ensure hours is a number
         hours: typeof formData.hours === 'number' ? formData.hours : parseFloat(String(formData.hours))
@@ -140,15 +148,20 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
         userid: user.id, 
         date: formData.date, 
         tasktype: "", 
-        taskid: null, 
+        taskid: null,
+        subtaskid: null, 
         description: "", 
         hours: 0 
       });
       
-      // Reset the task ID input field
+      // Reset the task ID input fields
       const taskIdInput = document.querySelector('input[name="taskid"]') as HTMLInputElement;
       if (taskIdInput) {
         taskIdInput.value = '';
+      }
+      const subtaskIdInput = document.querySelector('input[name="subtaskid"]') as HTMLInputElement;
+      if (subtaskIdInput) {
+        subtaskIdInput.value = '';
       }
     } catch (error) {
       console.error("Failed to create time entry:", error);
@@ -175,6 +188,7 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
         date: formData.date,
         tasktype: formData.tasktype,
         taskid: formData.taskid,
+        subtaskid: formData.subtaskid,
         description: formData.description,
         hours: typeof formData.hours === 'number' ? formData.hours : parseFloat(String(formData.hours))
       };
@@ -198,8 +212,51 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
   };
 
   const handleDuplicateYesterday = async () => {
-    // This functionality would duplicate yesterday's entries
-    // Implemented in the future
+    if (!user) return;
+    
+    try {
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      
+      // Fetch the latest entries before today
+      const result = await fetchLatestEntriesBeforeDate(todayStr, user.token);
+      
+      if (result.entries.length === 0 || !result.latestDate) {
+        alert("No previous entries found to duplicate.");
+        return;
+      }
+      
+      // Format the date for display
+      const latestDate = new Date(result.latestDate);
+      const formattedDate = latestDate.toLocaleDateString();
+      
+      // Confirm duplication
+      if (!window.confirm(`Duplicate ${result.entries.length} entries from ${formattedDate} to today?`)) {
+        return;
+      }
+      
+      // Create new entries for each of the previous entries
+      for (const entry of result.entries) {
+        const newEntry = {
+          date: todayStr,
+          tasktype: entry.tasktype,
+          taskid: entry.taskid,
+          subtaskid: entry.subtaskid,
+          description: entry.description,
+          hours: entry.hours
+        };
+        
+        await createTimeEntry(newEntry, user.token);
+      }
+      
+      // Notify parent component to refresh entries
+      onEntryAdded();
+      
+    } catch (error) {
+      console.error("Failed to duplicate previous entries:", error);
+      alert("Failed to duplicate previous entries. Please try again.");
+    }
   };
 
   const handleCancel = () => {
@@ -245,6 +302,16 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
         </div>
 
         <div>
+          <label>Sub Task ID</label>
+          <input 
+            type="number" 
+            name="subtaskid" 
+            value={formData.subtaskid || ''} 
+            onChange={handleInputChange}
+          />
+        </div>
+
+        <div>
           <label>Hours</label>
           <input 
             type="number" 
@@ -256,7 +323,7 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
         </div>
       </div>
 
-      <div>
+      <div className="description-row">
         <label>Description</label>
         <textarea 
           name="description" 
@@ -288,7 +355,7 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
               className="duplicate-yesterday-button" 
               onClick={handleDuplicateYesterday}
             >
-              Duplicate yesterday
+              Duplicate previous day
             </button>
             <button 
               className="add-button" 

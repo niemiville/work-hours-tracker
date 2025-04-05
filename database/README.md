@@ -37,6 +37,9 @@
   ```sh
   docker exec -it work-hours-db-toshiba psql -U toshiba -d workhours
   ```
+  ```sh
+  docker exec -it work-hours-db psql -U user -d workhours
+  ```
 
 ## Container Management
 
