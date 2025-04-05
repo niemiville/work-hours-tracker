@@ -160,6 +160,17 @@
   font-size: 0.9rem;
 }
 
+.import-note {
+  font-size: 0.9rem;
+  color: #555;
+  font-style: italic;
+  margin: 10px 0 15px;
+  background-color: #f8f8f8;
+  padding: 8px;
+  border-left: 3px solid #2196F3;
+  border-radius: 0 4px 4px 0;
+}
+
 .file-input-container {
   margin: 20px 0;
   display: flex;

@@ -66,16 +66,25 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
       }
 
       // Convert entries to CSV format
-      const headers = ['Date', 'Task Type', 'Task ID', 'Description', 'Hours'];
+      const headers = ['Date', 'Task Type', 'Task ID', 'Sub Task ID', 'Description', 'Hours'];
       const csvContent = [
-        headers.join(','),
-        ...allEntries.map(entry => [
-          entry.date,
-          `"${entry.tasktype.replace(/"/g, '""')}"`, // Escape quotes in CSV
-          entry.taskid || '',
-          `"${(entry.description || '').replace(/"/g, '""')}"`, // Escape quotes in CSV
-          entry.hours
-        ].join(','))
+        headers.join('\t'),
+        ...allEntries.map(entry => {
+          // Format date to ensure it's in YYYY-MM-DD format for Excel compatibility
+          let formattedDate = entry.date;
+          if (formattedDate.includes('T')) {
+            formattedDate = formattedDate.split('T')[0];
+          }
+          
+          return [
+            formattedDate,
+            `"${entry.tasktype.replace(/"/g, '""')}"`, // Escape quotes in CSV
+            entry.taskid || '',
+            entry.subtaskid || '',
+            `"${(entry.description || '').replace(/"/g, '""')}"`, // Escape quotes in CSV
+            entry.hours
+          ].join('\t');
+        })
       ].join('\n');
 
       // Create and download the file
@@ -161,13 +170,14 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
       
       // Parse CSV
       const lines = fileContent.split('\n');
-      const headers = lines[0].split(',');
+      const headers = lines[0].split('\t');
       
-      // Expected headers: Date, Task Type, Task ID, Description, Hours
+      // Expected headers: Date, Task Type, Task ID, Sub Task ID, Description, Hours
       // Map headers to indices for flexible parsing
       const dateIndex = headers.findIndex(h => h.trim().toLowerCase() === 'date');
       const taskTypeIndex = headers.findIndex(h => h.trim().toLowerCase() === 'task type');
       const taskIdIndex = headers.findIndex(h => h.trim().toLowerCase() === 'task id');
+      const subTaskIdIndex = headers.findIndex(h => h.trim().toLowerCase() === 'sub task id');
       const descriptionIndex = headers.findIndex(h => h.trim().toLowerCase() === 'description');
       const hoursIndex = headers.findIndex(h => h.trim().toLowerCase() === 'hours');
       
@@ -193,9 +203,10 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
           }
           
           const entry = {
-            date: values[dateIndex].trim(),
+            date: formatDateForAPI(values[dateIndex].trim()),
             tasktype: values[taskTypeIndex].trim(),
             taskid: values[taskIdIndex] ? parseInt(values[taskIdIndex].trim(), 10) || null : null,
+            subtaskid: values[subTaskIdIndex] ? parseInt(values[subTaskIdIndex].trim(), 10) || null : null,
             description: values[descriptionIndex] ? values[descriptionIndex].trim() : '',
             hours: parseFloat(values[hoursIndex].trim())
           };
@@ -240,6 +251,32 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
     });
   };
 
+  // Helper function to ensure a date is in YYYY-MM-DD format for the API
+  const formatDateForAPI = (dateString: string): string => {
+    try {
+      // If date is already in YYYY-MM-DD format, return it
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        return dateString;
+      }
+      
+      // Try to parse the date
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        throw new Error('Invalid date');
+      }
+      
+      // Format as YYYY-MM-DD
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString; // Return original if can't parse
+    }
+  };
+
   // Helper function to parse CSV lines with quoted fields
   const parseCSVLine = (line: string): string[] => {
     const result: string[] = [];
@@ -249,7 +286,7 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
     for (let i = 0; i < line.length; i++) {
       if (line[i] === '"') {
         inQuotes = !inQuotes;
-      } else if (line[i] === ',' && !inQuotes) {
+      } else if (line[i] === '\t' && !inQuotes) {
         result.push(line.substring(startIndex, i).replace(/^"|"$/g, '').replace(/""/g, '"'));
         startIndex = i + 1;
       }
@@ -265,6 +302,7 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
     <div className="import-export-container">
       <div className="export-section">
         <h2>Export Time Entries</h2>
+        <p>Export your time entries to an Excel-compatible CSV file using tab as a separator.</p>
         
         <div className="export-options">
           <div className="export-range">
@@ -323,8 +361,10 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
       
       <div className="import-section">
         <h2>Import Time Entries</h2>
-        <p>Import time entries from a CSV file. The file should have the following headers:</p>
-        <code className="csv-format">Date,Task Type,Task ID,Description,Hours</code>
+        <p>Import time entries from a CSV file. The file is Excel-compatible using tab-separated values. It should have the following headers:</p>
+        <code className="csv-format">Date&#9;Task Type&#9;Task ID&#9;Sub Task ID&#9;Description&#9;Hours</code>
+        <p className="import-note">To prepare a file in Excel: Create your spreadsheet with these columns, then Save As → CSV (Tab delimited) (*.csv).</p>
+        <p className="import-note">For dates, use either YYYY-MM-DD format (e.g., 2023-04-05) or any Excel-recognized date format (e.g., 4/5/2023).</p>
         
         <div className="file-input-container">
           <label htmlFor="csvImport" className="file-input-label">
