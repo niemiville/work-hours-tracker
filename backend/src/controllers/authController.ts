@@ -33,7 +33,7 @@ export const signup = async (req: Request, res: Response): Promise<any> => {
 
 // 🔹 User Login
 export const login = async (req: Request, res: Response): Promise<any> => {
-    const { name, password } = req.body;
+    const { name, password, rememberMe } = req.body;
     try {
         const result = await pool.query('SELECT * FROM users WHERE name = $1', [name]);
         if (result.rowCount === 0) {
@@ -46,8 +46,19 @@ export const login = async (req: Request, res: Response): Promise<any> => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ id: user.id, name: user.name, displayname: user.displayname }, SECRET_KEY, { expiresIn: '1h' });
-        return res.json({ token, user: { id: user.id, name: user.name, displayname: user.displayname } });
+        // Set token expiration based on rememberMe flag
+        const expiresIn = rememberMe ? '30d' : '1h';
+        const token = jwt.sign(
+            { id: user.id, name: user.name, displayname: user.displayname }, 
+            SECRET_KEY, 
+            { expiresIn }
+        );
+        
+        return res.json({ 
+            token, 
+            user: { id: user.id, name: user.name, displayname: user.displayname },
+            expiresIn
+        });
     } catch (err) {
         return res.status(500).json({ error: 'Database error' });
     }

@@ -48,6 +48,24 @@
   box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
 }
 
+/* Checkbox group styles */
+.auth-container .checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.auth-container .checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.auth-container .checkbox-group label {
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
 .auth-container button {
   background-color: #4CAF50;
   color: white;

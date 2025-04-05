@@ -22,8 +22,8 @@ export const signUp = async (name: string, password: string, displayname: string
     return response.data;
 };
 
-export const login = async (name: string, password: string) => {
-    const response = await axios.post(`${API_URL}/login`, { name, password });
+export const login = async (name: string, password: string, rememberMe: boolean = false) => {
+    const response = await axios.post(`${API_URL}/login`, { name, password, rememberMe });
     return response.data;
 };
 

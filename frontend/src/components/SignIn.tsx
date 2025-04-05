@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Auth.css';
@@ -6,13 +6,21 @@ import '../styles/Auth.css';
 const SignIn = () => {
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
-    const { login } = useAuth();
+    const [rememberMe, setRememberMe] = useState(false);
+    const { user, login } = useAuth();
     const navigate = useNavigate();
+
+    // Redirect if user is already logged in
+    useEffect(() => {
+        if (user) {
+            navigate('/workhours');
+        }
+    }, [user, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await login(name, password);
+            await login(name, password, rememberMe);
             navigate('/workhours'); // Redirect after successful login
         } catch (error) {
             alert('Sign in failed');
@@ -44,6 +52,15 @@ const SignIn = () => {
                         placeholder="Enter your password" 
                         required 
                     />
+                </div>
+                <div className="form-group checkbox-group">
+                    <input
+                        id="rememberMe"
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                    />
+                    <label htmlFor="rememberMe">Remember me</label>
                 </div>
                 <button type="submit">Sign in</button>
             </form>

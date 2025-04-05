@@ -10,7 +10,7 @@ type User = {
 
 type AuthContextType = {
     user: User | null;
-    login: (name: string, password: string) => Promise<void>;
+    login: (name: string, password: string, rememberMe?: boolean) => Promise<void>;
     logout: () => void;
 };
 
@@ -32,10 +32,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, []);
 
-    const login = async (name: string, password: string) => {
-        const data = await loginApi(name, password);
+    const login = async (name: string, password: string, rememberMe = false) => {
+        const data = await loginApi(name, password, rememberMe);
         setUser({ ...data.user, token: data.token });
         localStorage.setItem('token', data.token);
+        
+        // Store user data in storage as well
+        if (rememberMe) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+        }
     };
 
     const logout = () => {
