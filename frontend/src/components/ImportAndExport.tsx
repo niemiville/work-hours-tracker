@@ -65,6 +65,9 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
         return;
       }
 
+      // Sort entries by date in ascending order (oldest first)
+      allEntries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
       // Convert entries to CSV format
       const headers = ['Date', 'Task Type', 'Task ID', 'Sub Task ID', 'Description', 'Hours'];
       const csvContent = [
