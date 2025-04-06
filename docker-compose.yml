@@ -5,8 +5,8 @@ services:
     container_name: work-hours-db-toshiba
     restart: always
     environment:
-      POSTGRES_USER: toshiba
-      POSTGRES_PASSWORD: change_db_password
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: workhours
     ports:
       - "127.0.0.1:5432:5432"
@@ -14,7 +14,7 @@ services:
       - /home/ville/work_postgres_data:/var/lib/postgresql/data
       - ./database/tables.sql:/docker-entrypoint-initdb.d/01-tables.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U toshiba -d workhours"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d workhours"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -32,8 +32,8 @@ services:
     environment:
       NODE_ENV: production
       DB_HOST: db
-      DB_USER: toshiba
-      DB_PASSWORD: change_db_password
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: workhours
       DB_PORT: 5432
       PORT: 3001
