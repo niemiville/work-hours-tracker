@@ -26,6 +26,7 @@ This application is fully containerized and can be run using Docker and Docker C
 
 3. Access the application:
    - Frontend: http://<your-ip>:20080
+   - Frontend SSL: https://<your-ip>:20443
    - Backend API: Available through the frontend at /api (not directly accessible)
 
 ### Rebuilding the Application
