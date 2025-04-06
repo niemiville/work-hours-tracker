@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Database
   db:
-    image: postgres:latest
+    image: postgres:17.4
     container_name: work-hours-db-toshiba
     restart: always
     environment:
@@ -37,6 +37,8 @@ services:
       DB_NAME: workhours
       DB_PORT: 5432
       PORT: 3001
+    ports:
+      - "127.0.0.1:3001:3001"
 
   # Frontend React Application
   frontend:
