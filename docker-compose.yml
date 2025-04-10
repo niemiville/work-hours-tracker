@@ -8,8 +8,6 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: workhours
-#    ports:
-#      - "127.0.0.1:5432:5432"
     volumes:
       - /home/ville/work_postgres_data:/var/lib/postgresql/data
       - ./database/tables.sql:/docker-entrypoint-initdb.d/01-tables.sql
@@ -37,8 +35,6 @@ services:
       DB_NAME: workhours
       DB_PORT: 5432
       PORT: 3001
-    ports:
-      - "127.0.0.1:3001:3001"
 
   # Frontend React Application
   frontend:
