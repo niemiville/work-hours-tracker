@@ -69,11 +69,11 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
       allEntries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       // Convert entries to CSV format
-      const headers = ['Date', 'Task Type', 'Task ID', 'Sub Task ID', 'Description', 'Hours'];
+      const headers = ['Date', 'TaskType', 'TaskID', 'SubTaskID', 'Hours', 'Description'];
       const csvContent = [
         headers.join('\t'),
         ...allEntries.map(entry => {
-          // Format date to ensure it's in YYYY-MM-DD format for Excel compatibility
+          // Format date to ensure it's in YYYY-MM-DD format
           let formattedDate = entry.date;
           if (formattedDate.includes('T')) {
             formattedDate = formattedDate.split('T')[0];
@@ -81,11 +81,11 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
           
           return [
             formattedDate,
-            `"${entry.tasktype.replace(/"/g, '""')}"`, // Escape quotes in CSV
+            entry.tasktype,
             entry.taskid || '',
             entry.subtaskid || '',
-            `"${(entry.description || '').replace(/"/g, '""')}"`, // Escape quotes in CSV
-            entry.hours
+            entry.hours,
+            entry.description || ''
           ].join('\t');
         })
       ].join('\n');
@@ -175,14 +175,13 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
       const lines = fileContent.split('\n');
       const headers = lines[0].split('\t');
       
-      // Expected headers: Date, Task Type, Task ID, Sub Task ID, Description, Hours
-      // Map headers to indices for flexible parsing
+      // Expected headers: Date, TaskType, TaskID, SubTaskID, Hours, Description
       const dateIndex = headers.findIndex(h => h.trim().toLowerCase() === 'date');
-      const taskTypeIndex = headers.findIndex(h => h.trim().toLowerCase() === 'task type');
-      const taskIdIndex = headers.findIndex(h => h.trim().toLowerCase() === 'task id');
-      const subTaskIdIndex = headers.findIndex(h => h.trim().toLowerCase() === 'sub task id');
-      const descriptionIndex = headers.findIndex(h => h.trim().toLowerCase() === 'description');
+      const taskTypeIndex = headers.findIndex(h => h.trim().toLowerCase() === 'tasktype');
+      const taskIdIndex = headers.findIndex(h => h.trim().toLowerCase() === 'taskid');
+      const subTaskIdIndex = headers.findIndex(h => h.trim().toLowerCase() === 'subtaskid');
       const hoursIndex = headers.findIndex(h => h.trim().toLowerCase() === 'hours');
+      const descriptionIndex = headers.findIndex(h => h.trim().toLowerCase() === 'description');
       
       // Validate headers
       if (dateIndex === -1 || taskTypeIndex === -1 || hoursIndex === -1) {
@@ -364,10 +363,10 @@ const ImportAndExport: React.FC<ImportAndExportProps> = () => {
       
       <div className="import-section">
         <h2>Import Time Entries</h2>
-        <p>Import time entries from a CSV file. The file is Excel-compatible using tab-separated values. It should have the following headers:</p>
-        <code className="csv-format">Date&#9;Task Type&#9;Task ID&#9;Sub Task ID&#9;Description&#9;Hours</code>
-        <p className="import-note">To prepare a file in Excel: Create your spreadsheet with these columns, then Save As → CSV (Tab delimited) (*.csv).</p>
-        <p className="import-note">For dates, use either YYYY-MM-DD format (e.g., 2023-04-05) or any Excel-recognized date format (e.g., 4/5/2023).</p>
+        <p>Import time entries from a tab-separated text file. The file should have the following format:</p>
+        <code className="csv-format">Date&#9;TaskType&#9;TaskID&#9;SubTaskID&#9;Hours&#9;Description</code>
+        <p className="import-note">Example: 2025-04-20&#9;Development&#9;123&#9;456&#9;2.5&#9;Implemented new feature</p>
+        <p className="import-note">For dates, use YYYY-MM-DD format (e.g., 2025-04-20).</p>
         
         <div className="file-input-container">
           <label htmlFor="csvImport" className="file-input-label">
