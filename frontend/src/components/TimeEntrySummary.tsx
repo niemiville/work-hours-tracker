@@ -101,7 +101,17 @@ const TimeEntrySummary: React.FC = () => {
   };
 
   const getMissingHours = (totalHours: number): number => {
+    // Using a small epsilon value to account for floating-point precision
+    const epsilon = 0.001;
+    if (Math.abs(totalHours - DAILY_TARGET_HOURS) < epsilon) {
+      return 0; // Treat as exactly met if difference is negligible
+    }
     return Math.max(0, DAILY_TARGET_HOURS - totalHours);
+  };
+
+  // Check if hours are missing (accounting for floating-point precision)
+  const isHoursMissing = (totalHours: number): boolean => {
+    return getMissingHours(totalHours) > 0;
   };
 
   const getExceedingHours = (totalHours: number): number => {
@@ -145,10 +155,15 @@ const TimeEntrySummary: React.FC = () => {
                   <span className="meta-label">Exceeding Hours:</span>
                   <span className="meta-value">{getExceedingHours(summary.totalHours).toFixed(2)}</span>
                 </div>
-              ) : (
+              ) : isHoursMissing(summary.totalHours) ? (
                 <div className="meta-item missing">
                   <span className="meta-label">Missing Hours:</span>
                   <span className="meta-value">{getMissingHours(summary.totalHours).toFixed(2)}</span>
+                </div>
+              ) : (
+                <div className="meta-item exceeding">
+                  <span className="meta-label">Missing Hours:</span>
+                  <span className="meta-value">0.00</span>
                 </div>
               )
             )}
