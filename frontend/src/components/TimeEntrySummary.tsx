@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TimeEntry, fetchEntriesByDate } from '../api/timeEntryApi';
+import { fetchEntriesByDate } from '../api/timeEntryApi';
 import { useAuth } from './AuthContext';
 import '../styles/TimeEntrySummary.css';
 
