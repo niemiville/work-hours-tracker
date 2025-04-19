@@ -34,6 +34,8 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [hoursInputValue, setHoursInputValue] = useState<string>('');
   const formRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState<'form' | 'text'>('form');
+  const [textInput, setTextInput] = useState<string>('');
 
   // Update form when editingEntry changes
   useEffect(() => {
@@ -292,109 +294,258 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
     }
   };
 
+  const handleTextInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setTextInput(e.target.value);
+  };
+
+  const parseTextInput = (text: string): TimeEntryForm[] => {
+    const lines = text.trim().split('\n');
+    return lines.map(line => {
+      // First try splitting on tabs
+      const tabParts = line.split('\t');
+      
+      if (tabParts.length >= 5) {
+        const [date, tasktype, taskid, subtaskid, hours, ...descriptionParts] = tabParts;
+        // Validate and format date
+        const formattedDate = validateAndFormatDate(date);
+        return {
+          userid: user?.id || 0,
+          date: formattedDate || currentDate,
+          tasktype: tasktype || '',
+          taskid: taskid ? Number(taskid) : null,
+          subtaskid: subtaskid ? Number(subtaskid) : null,
+          hours: hours ? parseFloat(hours.replace(',', '.')) : 0,
+          description: descriptionParts.join('\t')
+        };
+      }
+      
+      // If tab splitting didn't work, try splitting on spaces
+      const spaceParts = line.split(/\s+/);
+      if (spaceParts.length >= 5) {
+        const [date, tasktype, taskid, subtaskid, hours, ...descriptionParts] = spaceParts;
+        // Validate and format date
+        const formattedDate = validateAndFormatDate(date);
+        return {
+          userid: user?.id || 0,
+          date: formattedDate || currentDate,
+          tasktype: tasktype || '',
+          taskid: taskid ? Number(taskid) : null,
+          subtaskid: subtaskid ? Number(subtaskid) : null,
+          hours: hours ? parseFloat(hours.replace(',', '.')) : 0,
+          description: descriptionParts.join(' ')
+        };
+      }
+      
+      // If we can't parse it properly, return a default entry
+      return {
+        userid: user?.id || 0,
+        date: currentDate,
+        tasktype: '',
+        taskid: null,
+        subtaskid: null,
+        hours: 0,
+        description: ''
+      };
+    });
+  };
+
+  const validateAndFormatDate = (dateStr: string): string | null => {
+    if (!dateStr) return null;
+    
+    // Check if the date is in YYYY-MM-DD format
+    const dateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const match = dateStr.match(dateRegex);
+    
+    if (match) {
+      const [_, year, month, day] = match;
+      const yearNum = parseInt(year);
+      const monthNum = parseInt(month);
+      const dayNum = parseInt(day);
+      
+      // Basic validation of date components
+      if (yearNum < 1000 || yearNum > 9999) return null;
+      if (monthNum < 1 || monthNum > 12) return null;
+      if (dayNum < 1 || dayNum > 31) return null;
+      
+      // Return the original string if it passes basic validation
+      return dateStr;
+    }
+    
+    return null;
+  };
+
+  const handleTextSubmit = async () => {
+    if (!user) return;
+
+    const entries = parseTextInput(textInput);
+    const validEntries = entries.filter(entry => 
+      entry.date && 
+      entry.tasktype.trim() && 
+      entry.hours > 0
+    );
+
+    if (validEntries.length === 0) {
+      alert("No valid entries found. Please check your input format.");
+      return;
+    }
+
+    try {
+      for (const entry of validEntries) {
+        await createTimeEntry(entry, user.token);
+      }
+      onEntryAdded();
+      setTextInput('');
+    } catch (error) {
+      console.error("Failed to create time entries:", error);
+      alert("Failed to create time entries. Please try again.");
+    }
+  };
+
   return (
     <div 
       ref={formRef}
       className={`form-container ${isEditMode ? 'edit-mode' : 'add-mode'}`}
     >
-      <div className="input-row">
-        <div>
-          <label>Date</label>
-          <input 
-            type="date" 
-            name="date" 
-            value={formData.date} 
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div>
-          <label>Task Type</label>
-          <input 
-            type="text" 
-            name="tasktype" 
-            value={formData.tasktype} 
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div>
-          <label>Task ID</label>
-          <input 
-            type="number" 
-            name="taskid" 
-            value={formData.taskid || ''} 
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div>
-          <label>Sub Task ID</label>
-          <input 
-            type="number" 
-            name="subtaskid" 
-            value={formData.subtaskid || ''} 
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div>
-          <label>Hours</label>
-          <input 
-            type="text" 
-            name="hours" 
-            placeholder="0.00"
-            value={hoursInputValue} 
-            onChange={handleInputChange}
-            onFocus={handleHoursFocus}
-          />
-        </div>
+      <div className="tabs">
+        <button 
+          className={`tab-button ${activeTab === 'form' ? 'active' : ''}`}
+          onClick={() => setActiveTab('form')}
+        >
+          Form View
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'text' ? 'active' : ''}`}
+          onClick={() => setActiveTab('text')}
+        >
+          Text Input
+        </button>
       </div>
 
-      <div className="description-row">
-        <label>Description</label>
-        <textarea 
-          name="description" 
-          value={formData.description} 
-          onChange={handleInputChange}
-        />
-      </div>
+      {activeTab === 'form' ? (
+        <>
+          <div className="input-row">
+            <div>
+              <label>Date</label>
+              <input 
+                type="date" 
+                name="date" 
+                value={formData.date} 
+                onChange={handleInputChange}
+              />
+            </div>
 
-      <div className="form-actions">
-        {isEditMode ? (
-          <>
-            <button 
-              className="save-button" 
-              onClick={handleUpdate}
-              disabled={!isFormValid()}
-            >
-              Save Changes
-            </button>
-            <button 
-              className="cancel-button" 
-              onClick={handleCancel}
-            >
-              Cancel
-            </button>
-          </>
-        ) : (
-          <>
-            <button 
-              className="duplicate-yesterday-button" 
-              onClick={handleDuplicateYesterday}
-            >
-              Duplicate previous day
-            </button>
+            <div>
+              <label>Task Type</label>
+              <input 
+                type="text" 
+                name="tasktype" 
+                value={formData.tasktype} 
+                onChange={handleInputChange}
+              />
+            </div>
+
+            <div>
+              <label>Task ID</label>
+              <input 
+                type="number" 
+                name="taskid" 
+                value={formData.taskid || ''} 
+                onChange={handleInputChange}
+              />
+            </div>
+
+            <div>
+              <label>Sub Task ID</label>
+              <input 
+                type="number" 
+                name="subtaskid" 
+                value={formData.subtaskid || ''} 
+                onChange={handleInputChange}
+              />
+            </div>
+
+            <div>
+              <label>Hours</label>
+              <input 
+                type="text" 
+                name="hours" 
+                placeholder="0.00"
+                value={hoursInputValue} 
+                onChange={handleInputChange}
+                onFocus={handleHoursFocus}
+              />
+            </div>
+          </div>
+
+          <div className="description-row">
+            <label>Description</label>
+            <textarea 
+              name="description" 
+              value={formData.description} 
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="form-actions">
+            {isEditMode ? (
+              <>
+                <button 
+                  className="save-button" 
+                  onClick={handleUpdate}
+                  disabled={!isFormValid()}
+                >
+                  Save Changes
+                </button>
+                <button 
+                  className="cancel-button" 
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  className="duplicate-yesterday-button" 
+                  onClick={handleDuplicateYesterday}
+                >
+                  Duplicate previous day
+                </button>
+                <button 
+                  className="add-button" 
+                  onClick={handleCreate}
+                  disabled={!isFormValid()}
+                >
+                  Add entry
+                </button>
+              </>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="text-input-container">
+          <div className="text-input-header">
+            <p>Enter entries in tab-separated format (one per line):</p>
+            <p>Date TaskType TaskID SubTaskID Hours Description</p>
+          </div>
+          <textarea
+            className="text-input"
+            value={textInput}
+            onChange={handleTextInputChange}
+            placeholder="2024-03-20&#9;Development&#9;123&#9;456&#9;2.5&#9;Implemented new feature"
+            rows={10}
+          />
+          <div className="form-actions">
             <button 
               className="add-button" 
-              onClick={handleCreate}
-              disabled={!isFormValid()}
+              onClick={handleTextSubmit}
+              disabled={!textInput.trim()}
             >
-              Add entry
+              Add Entries
             </button>
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
