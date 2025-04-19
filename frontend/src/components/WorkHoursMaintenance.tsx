@@ -5,10 +5,11 @@ import AddTimeEntry from "./AddTimeEntry";
 import TimeEntryList from "./TimeEntryList";
 import ImportAndExport from "./ImportAndExport";
 import Stats from "./Stats";
+import TimeEntrySummary from "./TimeEntrySummary";
 import { TimeEntry } from "../api/timeEntryApi";
 import "../styles/WorkHoursMaintenance.css";
 
-type ActiveView = 'time-entries' | 'import-export' | 'stats';
+type ActiveView = 'time-entries' | 'import-export' | 'stats' | 'summary';
 
 const WorkHoursMaintenance: React.FC = () => {
   const { user, logout } = useAuth();
@@ -99,6 +100,14 @@ const WorkHoursMaintenance: React.FC = () => {
                   Statistics
                 </a>
               </li>
+              <li className={activeView === 'summary' ? 'active' : ''}>
+                <a href="#" onClick={(e) => {
+                  e.preventDefault();
+                  switchView('summary');
+                }}>
+                  Summary
+                </a>
+              </li>
             </ul>
           </nav>
         </div>
@@ -164,10 +173,15 @@ const WorkHoursMaintenance: React.FC = () => {
               <h2 className="section-title">Import & Export</h2>
               <ImportAndExport onSignOut={handleSignOut} />
             </>
-          ) : (
+          ) : activeView === 'stats' ? (
             <>
               <h2 className="section-title">Statistics</h2>
               <Stats onSignOut={handleSignOut} />
+            </>
+          ) : (
+            <>
+              <h2 className="section-title">Daily Summary</h2>
+              <TimeEntrySummary />
             </>
           )}
         </div>
