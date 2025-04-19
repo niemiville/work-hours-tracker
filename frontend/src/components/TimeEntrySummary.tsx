@@ -136,19 +136,19 @@ const TimeEntrySummary: React.FC = () => {
             </div>
             <div className="meta-item">
               <span className="meta-label">Total Hours:</span>
-              <span className="meta-value">{typeof summary.totalHours === 'number' ? summary.totalHours.toFixed(1) : '0.0'}</span>
+              <span className="meta-value">{typeof summary.totalHours === 'number' ? summary.totalHours.toFixed(2) : '0.00'}</span>
             </div>
             
             {typeof summary.totalHours === 'number' && (
               isExceeding(summary.totalHours) ? (
                 <div className="meta-item exceeding">
                   <span className="meta-label">Exceeding Hours:</span>
-                  <span className="meta-value">{getExceedingHours(summary.totalHours).toFixed(1)}</span>
+                  <span className="meta-value">{getExceedingHours(summary.totalHours).toFixed(2)}</span>
                 </div>
               ) : (
                 <div className="meta-item missing">
                   <span className="meta-label">Missing Hours:</span>
-                  <span className="meta-value">{getMissingHours(summary.totalHours).toFixed(1)}</span>
+                  <span className="meta-value">{getMissingHours(summary.totalHours).toFixed(2)}</span>
                 </div>
               )
             )}
@@ -168,7 +168,7 @@ const TimeEntrySummary: React.FC = () => {
                   <tr key={`${task.taskType}-${task.taskId}-${index}`}>
                     <td>{task.taskType}</td>
                     <td>{String(task.taskId)}</td>
-                    <td>{typeof task.totalHours === 'number' ? task.totalHours.toFixed(1) : '0.0'}</td>
+                    <td>{typeof task.totalHours === 'number' ? task.totalHours.toFixed(2) : '0.00'}</td>
                   </tr>
                 ))}
               </tbody>
