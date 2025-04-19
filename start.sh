@@ -2,7 +2,7 @@
 # Start All Services on bash (Linux)
 
 echo "Starting database..."
-( cd database && docker-compose up -d && echo "Database started" )
+( cd database && docker compose up -d && echo "Database started" )
 
 echo "Starting backend..."
 ( cd backend && npm run dev & )

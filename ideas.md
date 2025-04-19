@@ -8,6 +8,8 @@
 - **Project categorization** - Add parent projects/categories for organizing related tasks
 - Task search feture to stats view.
 - Make sure updated column is used in database
+- Plus/minus hours for the users. 
+- Daily hours target for user.
 
 ---
 
