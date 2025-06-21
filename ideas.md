@@ -10,6 +10,8 @@
 - Make sure updated column is used in database
 - Plus/minus hours for the users. 
 - Daily hours target for user.
+- Make task types become automatically lower case.
+- Add number change arrows to hours field, 0.25 basic tick.
 
 ---
 
