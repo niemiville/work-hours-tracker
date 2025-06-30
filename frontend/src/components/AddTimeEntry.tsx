@@ -111,6 +111,12 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
       }
       return;
     }
+
+    // Automatically lowercase tasktype
+    if (name === 'tasktype') {
+      setFormData((prev) => ({ ...prev, tasktype: value.toLowerCase() }));
+      return;
+    }
     
     setFormData((prev) => ({ 
       ...prev, 
@@ -550,4 +556,4 @@ const AddTimeEntry: React.FC<AddTimeEntryProps> = ({
   );
 };
 
-export default AddTimeEntry; 
+export default AddTimeEntry;
